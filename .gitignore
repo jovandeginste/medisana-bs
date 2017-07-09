@@ -1,2 +1,4 @@
 config.go
 medisana-bs
+build/*
+csv/*
