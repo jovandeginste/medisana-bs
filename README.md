@@ -15,4 +15,5 @@ your local platform. The `Makefile` supports these platforms:
 
 # TODO
 
-* Send out mails when new data was received.
+* Work out event handler framework for custom parsing of data
+* Send out mails when new data was received (as a first custom parser)
