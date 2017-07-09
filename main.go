@@ -12,10 +12,12 @@ import (
 )
 
 func main() {
-	go func() {
-		new_weights := ImportCsv("csv/2b.csv")
-		updateData(3, new_weights)
-	}()
+	for i := 1; i < 8; i++ {
+		go func(i int) {
+			new_weights := ImportCsv("csv/" + strconv.Itoa(i) + ".csv")
+			updateData(i, new_weights)
+		}(i)
+	}
 
 	d, err := dev.NewDevice(device)
 	if err != nil {
