@@ -6,9 +6,6 @@ import (
 	"log"
 )
 
-const MaxInt = 2147483647
-const time_offset = 1262304000
-
 func test() {
 	/*
 		From CSV:

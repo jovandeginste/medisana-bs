@@ -5,7 +5,11 @@ import (
 )
 
 // These are hard coded for now
-var device = "default"
-var scanDuration = 60 * time.Second
-var deviceID = "AA:BB:CC:DD:EE:FF" // The MAC address of your scale
-var sub = 60 * time.Second
+const device = "default"
+const scanDuration = 60 * time.Second
+const deviceID = "AA:BB:CC:DD:EE:FF" // The MAC address of your scale
+const sub = 60 * time.Second
+const time_offset = 1262304000 // For BS410
+// const time_offset = 0 // For BS440
+
+const MaxInt = 2147483647
