@@ -55,6 +55,7 @@ func UpdateBody(update Body) {
 	bodyMetric.Tbw = update.Tbw
 	bodyMetric.Muscle = update.Muscle
 	bodyMetric.Bone = update.Bone
+	person.BodyMetrics[update.Timestamp] = bodyMetric
 	PrintPerson(person)
 }
 func UpdateWeight(update Weight) {
@@ -71,6 +72,7 @@ func UpdateWeight(update Weight) {
 	bodyMetric, _ := person.BodyMetrics[update.Timestamp]
 	bodyMetric.Weight = update.Weight
 	bodyMetric.Timestamp = update.Timestamp
+	person.BodyMetrics[update.Timestamp] = bodyMetric
 	PrintPerson(person)
 }
 func PrintPerson(person *PersonMetrics) {
