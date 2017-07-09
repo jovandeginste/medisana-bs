@@ -8,7 +8,7 @@ var allPersons = make([]*PersonMetrics, 8)
 
 func MetricParser() {
 	for i := range allPersons {
-		allPersons[i] = &PersonMetrics{Person: i + 1, BodyMetrics: make(map[int]BodyMetrics)}
+		allPersons[i] = &PersonMetrics{Person: i + 1, BodyMetrics: make(map[int]BodyMetric)}
 	}
 	for {
 		partial_metric := <-metric_chan
@@ -43,6 +43,18 @@ func UpdateBody(update Body) {
 	}
 	log.Printf("Received body metrics: %+v", update)
 	person := GetPersonMetrics(update.Person)
+	_, ok := person.BodyMetrics[update.Timestamp]
+	if !ok {
+		log.Printf("No body metric - creating")
+		person.BodyMetrics[update.Timestamp] = BodyMetric{}
+	}
+	bodyMetric, _ := person.BodyMetrics[update.Timestamp]
+	bodyMetric.Timestamp = update.Timestamp
+	bodyMetric.Kcal = update.Kcal
+	bodyMetric.Fat = update.Fat
+	bodyMetric.Tbw = update.Tbw
+	bodyMetric.Muscle = update.Muscle
+	bodyMetric.Bone = update.Bone
 	PrintPerson(person)
 }
 func UpdateWeight(update Weight) {
@@ -51,8 +63,14 @@ func UpdateWeight(update Weight) {
 	}
 	log.Printf("Received weight metrics: %+v", update)
 	person := GetPersonMetrics(update.Person)
-	bodyMetric := person.BodyMetrics[update.Timestamp]
-	log.Printf("Body metric: %+v\n", bodyMetric)
+	_, ok := person.BodyMetrics[update.Timestamp]
+	if !ok {
+		log.Printf("No body metric - creating")
+		person.BodyMetrics[update.Timestamp] = BodyMetric{}
+	}
+	bodyMetric, _ := person.BodyMetrics[update.Timestamp]
+	bodyMetric.Weight = update.Weight
+	bodyMetric.Timestamp = update.Timestamp
 	PrintPerson(person)
 }
 func PrintPerson(person *PersonMetrics) {

@@ -6,7 +6,7 @@ type PersonMetrics struct {
 	Age         int
 	Size        int
 	Activity    string
-	BodyMetrics map[int]BodyMetrics
+	BodyMetrics map[int]BodyMetric
 }
 
 type BodyMetric struct {
@@ -19,6 +19,7 @@ type BodyMetric struct {
 	Kcal      int
 	Bmi       float32
 }
+
 type BodyMetrics []BodyMetric
 
 type Person struct {
