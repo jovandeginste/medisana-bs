@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/currantlabs/ble"
-	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"time"
 )
 
@@ -13,11 +11,8 @@ func explore(cln ble.Client, p *ble.Profile) error {
 
 	for _, s := range p.Services {
 		for _, c := range s.Characteristics {
-			fmt.Printf("Indication characteristic: %s\n", c)
 			switch fmt.Sprintf("%s", c.UUID) {
 			case "8a21", "8a22", "8a82":
-				fmt.Printf("\n-- Subscribe to indication of %v --\n", c.UUID)
-
 				h := func(req []byte) { parseIndication(req) }
 
 				if err := cln.Subscribe(c, true, h); err != nil {
@@ -30,13 +25,8 @@ func explore(cln ble.Client, p *ble.Profile) error {
 	// Then we send the current time (which triggers data transmission)
 	for _, s := range p.Services {
 		for _, c := range s.Characteristics {
-			fmt.Printf("Indication characteristic: %s\n", c)
 			switch fmt.Sprintf("%s", c.UUID) {
 			case "8a81":
-				for _, d := range c.Descriptors {
-					fmt.Printf("Descriptor: %+v\n", d)
-				}
-
 				fmt.Printf("Sending the time... ")
 				thetime := time.Now().Unix()
 				binarytime := generateTime(thetime)
@@ -70,17 +60,6 @@ func propString(p ble.Property) string {
 	return s
 }
 
-func chkErr(err error) {
-	switch errors.Cause(err) {
-	case nil:
-	case context.DeadlineExceeded:
-		fmt.Printf("done\n")
-	case context.Canceled:
-		fmt.Printf("canceled\n")
-	default:
-		fmt.Printf(err.Error())
-	}
-}
 func parseIndication(req []byte) {
 	fmt.Printf("Got data: [% X]\n", req)
 	switch req[0] {

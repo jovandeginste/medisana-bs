@@ -19,7 +19,7 @@ func main() {
 
 	d, err := dev.NewDevice(device)
 	if err != nil {
-		fmt.Printf("can't new device : %s", err)
+		fmt.Printf("Can't use new device: %s", err)
 	}
 	ble.SetDefaultDevice(d)
 
@@ -79,6 +79,5 @@ func generateTime(therealtime int64) []byte {
 	binary.LittleEndian.PutUint32(bs, thetime)
 	bs = append([]byte{2}, bs...)
 
-	fmt.Printf("The time is: [% X]\n", bs)
 	return bs
 }
