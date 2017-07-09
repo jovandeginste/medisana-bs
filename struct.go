@@ -38,3 +38,8 @@ type Body struct {
 	Muscle    float32
 	Bone      float32
 }
+type PartialMetric struct {
+	person Person
+	weight Weight
+	body   Body
+}

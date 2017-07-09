@@ -11,53 +11,51 @@ import (
 )
 
 func StartBluetooth() {
-	go func() {
-		d, err := dev.NewDevice(device)
+	d, err := dev.NewDevice(device)
+	if err != nil {
+		log.Printf("Can't use new device: %s", err)
+	}
+	ble.SetDefaultDevice(d)
+
+	filter := func(a ble.Advertisement) bool {
+		return strings.ToUpper(a.Address().String()) == strings.ToUpper(deviceID)
+	}
+
+	for {
+		ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), scanDuration))
+		cln, err := ble.Connect(ctx, filter)
 		if err != nil {
-			log.Printf("Can't use new device: %s", err)
-		}
-		ble.SetDefaultDevice(d)
+			log.Printf("Timeout: %s\n", err)
+		} else {
+			// Make sure we had the chance to print out the message.
+			done := make(chan struct{})
+			// Normally, the connection is disconnected by us after our exploration.
+			// However, it can be asynchronously disconnected by the remote peripheral.
+			// So we wait(detect) the disconnection in the go routine.
+			go func() {
+				<-cln.Disconnected()
+				log.Printf("[ %s ] is disconnected \n", cln.Address())
+				close(done)
+			}()
 
-		filter := func(a ble.Advertisement) bool {
-			return strings.ToUpper(a.Address().String()) == strings.ToUpper(deviceID)
-		}
-
-		for {
-			ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), scanDuration))
-			cln, err := ble.Connect(ctx, filter)
+			log.Printf("Discovering profile...\n")
+			p, err := cln.DiscoverProfile(true)
 			if err != nil {
-				log.Printf("Timeout: %s\n", err)
-			} else {
-				// Make sure we had the chance to print out the message.
-				done := make(chan struct{})
-				// Normally, the connection is disconnected by us after our exploration.
-				// However, it can be asynchronously disconnected by the remote peripheral.
-				// So we wait(detect) the disconnection in the go routine.
-				go func() {
-					<-cln.Disconnected()
-					log.Printf("[ %s ] is disconnected \n", cln.Address())
-					close(done)
-				}()
-
-				log.Printf("Discovering profile...\n")
-				p, err := cln.DiscoverProfile(true)
-				if err != nil {
-					log.Printf("can't discover profile: %s", err)
-				}
-
-				// Start the exploration.
-				explore(cln, p)
-
-				time.Sleep(sub)
-
-				// Disconnect the connection. (On OS X, this might take a while.)
-				log.Printf("Disconnecting [ %s ]... (this might take up to few seconds on OS X)\n", cln.Address())
-				cln.CancelConnection()
-
-				<-done
+				log.Printf("can't discover profile: %s", err)
 			}
+
+			// Start the exploration.
+			explore(cln, p)
+
+			time.Sleep(sub)
+
+			// Disconnect the connection. (On OS X, this might take a while.)
+			log.Printf("Disconnecting [ %s ]... (this might take up to few seconds on OS X)\n", cln.Address())
+			cln.CancelConnection()
+
+			<-done
 		}
-	}()
+	}
 }
 
 func explore(cln ble.Client, p *ble.Profile) error {
@@ -97,20 +95,22 @@ func explore(cln ble.Client, p *ble.Profile) error {
 
 func parseIndication(req []byte) {
 	log.Printf("Got data: [% X]\n", req)
-	switch req[0] {
-	case 0x84:
-		log.Printf("Received person data: ")
-		person := decodePerson(req)
-		log.Printf("%+v\n", person)
-	case 0x1D:
-		log.Printf("Received weight data: ")
-		weight := decodeWeight(req)
-		log.Printf("%+v\n", weight)
-	case 0x6F:
-		log.Printf("Received body data: ")
-		body := decodeBody(req)
-		log.Printf("%+v\n", body)
-	default:
-		log.Println("Unhandled Indication encountered")
-	}
+	go func() {
+		switch req[0] {
+		case 0x84:
+			log.Printf("Received person data: ")
+			person := decodePerson(req)
+			log.Printf("%+v\n", person)
+		case 0x1D:
+			log.Printf("Received weight data: ")
+			weight := decodeWeight(req)
+			log.Printf("%+v\n", weight)
+		case 0x6F:
+			log.Printf("Received body data: ")
+			body := decodeBody(req)
+			log.Printf("%+v\n", body)
+		default:
+			log.Println("Unhandled Indication encountered")
+		}
+	}()
 }

@@ -8,15 +8,25 @@ import (
 
 func main() {
 	log.Println("Starting Bluetooth Scale monitor")
-	for i := 1; i < 8; i++ {
-		go func(i int) {
-			new_weights := ImportCsv("csv/" + strconv.Itoa(i) + ".csv")
-			updateData(i, new_weights)
-		}(i)
-	}
 
-	//StartBluetooth()
-	FakeBluetooth()
+	metric_chan := make(chan PartialMetric, 2)
+	go func() {
+		MetricParser(metric_chan)
+	}()
+	/*
+		for i := 1; i < 8; i++ {
+			go func(i int) {
+				new_weights := ImportCsv("csv/" + strconv.Itoa(i) + ".csv")
+				updateData(i, new_weights)
+			}(i)
+		}
+	*/
+
+	go func() {
+		//StartBluetooth()
+		FakeBluetooth()
+	}()
+
 	select {}
 }
 
