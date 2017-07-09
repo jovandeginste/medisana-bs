@@ -15,5 +15,4 @@ your local platform. The `Makefile` supports these platforms:
 
 # TODO
 
-Add incoming data to the csvs
-Detect when to write the new csvs to disk
+* Send out mails when new data was received.
