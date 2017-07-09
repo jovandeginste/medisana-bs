@@ -6,6 +6,7 @@ type PersonMetrics struct {
 	Age         int
 	Size        int
 	Activity    string
+	Updated     bool
 	BodyMetrics map[int]BodyMetric
 }
 

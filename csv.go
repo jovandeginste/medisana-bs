@@ -21,11 +21,12 @@ func CreateCsvDir(file string) {
 	}
 }
 
-func ExportCsv(filename string, weights BodyMetrics) {
-	log.Printf("Writing to file '%s'.\n", filename)
-	CreateCsvDir(filename)
+func ExportCsv(person int, weights BodyMetrics) {
+	csvFile := "csv/" + strconv.Itoa(person) + ".csv"
+	log.Printf("Writing to file '%s'.\n", csvFile)
+	CreateCsvDir(csvFile)
 
-	f, err := os.Create(filename)
+	f, err := os.Create(csvFile)
 	if err != nil {
 		log.Printf("%#v", err)
 	}
@@ -38,13 +39,14 @@ func ExportCsv(filename string, weights BodyMetrics) {
 	}
 }
 
-func ImportCsv(filename string) (result BodyMetrics) {
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
+func ImportCsv(person int) (result BodyMetrics) {
+	csvFile := "csv/" + strconv.Itoa(person) + ".csv"
+	if _, err := os.Stat(csvFile); os.IsNotExist(err) {
 		return
 	}
 
 	// Load a TXT file.
-	f, _ := os.Open(filename)
+	f, _ := os.Open(csvFile)
 
 	// Create a new reader.
 	r := csv.NewReader(bufio.NewReader(f))

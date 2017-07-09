@@ -29,6 +29,7 @@ func FakeBluetooth() {
 		time.Sleep(200 * time.Millisecond)
 		s, e = Readln(r)
 	}
+	time.Sleep(1 * time.Second)
 	log.Println("Finished sending fake data from 'testdata' to the indicator parser. Waiting in an infinite loop now.")
 	select {}
 }

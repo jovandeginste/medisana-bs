@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"math"
+	"time"
 )
 
 var allPersons = make([]*PersonMetrics, 8)
@@ -10,12 +11,16 @@ var allPersons = make([]*PersonMetrics, 8)
 func MetricParser() {
 	for i := range allPersons {
 		allPersons[i] = &PersonMetrics{Person: i + 1, BodyMetrics: make(map[int]BodyMetric)}
+		allPersons[i].ImportBodyMetrics(ImportCsv(i + 1))
 	}
+	sync_chan := make(chan bool)
+	Debounce(3*time.Second, sync_chan)
 	for {
 		partial_metric := <-metric_chan
 		UpdatePerson(partial_metric.Person)
 		UpdateBody(partial_metric.Body)
 		UpdateWeight(partial_metric.Weight)
+		sync_chan <- true
 	}
 }
 
@@ -43,6 +48,7 @@ func UpdateBody(update Body) {
 	}
 	log.Printf("Received body metrics: %+v", update)
 	person := GetPersonMetrics(update.Person)
+	person.Updated = true
 	_, ok := person.BodyMetrics[update.Timestamp]
 	if !ok {
 		log.Printf("No body metric - creating")
@@ -64,6 +70,7 @@ func UpdateWeight(update Weight) {
 	}
 	log.Printf("Received weight metrics: %+v", update)
 	person := GetPersonMetrics(update.Person)
+	person.Updated = true
 	_, ok := person.BodyMetrics[update.Timestamp]
 	if !ok {
 		log.Printf("No body metric - creating")
@@ -80,5 +87,22 @@ func UpdateWeight(update Weight) {
 	PrintPerson(person)
 }
 func PrintPerson(person *PersonMetrics) {
-	log.Printf("Person information: %+v", person)
+	log.Printf("Person %d now has %d metrics.\n", person.Person, len(person.BodyMetrics))
+}
+
+func Debounce(lull time.Duration, in chan bool) {
+	go func() {
+		for {
+			select {
+			case <-in:
+			case <-time.Tick(lull):
+				for _, person := range allPersons {
+					if person.Updated {
+						log.Printf("Person %d was updated.\n", person.Person)
+						person.ExportBodyMetrics()
+					}
+				}
+			}
+		}
+	}()
 }
