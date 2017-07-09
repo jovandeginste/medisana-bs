@@ -1,14 +1,23 @@
 package main
 
+type PersonMetrics struct {
+	Person      int
+	Gender      string
+	Age         int
+	Size        int
+	Activity    string
+	BodyMetrics map[int]BodyMetrics
+}
+
 type BodyMetric struct {
-	Timestamp  int
-	BodyMetric float32
-	Fat        float32
-	Muscle     float32
-	Bone       float32
-	Tbw        float32
-	Kcal       int
-	Bmi        float32
+	Timestamp int
+	Weight    float32
+	Fat       float32
+	Muscle    float32
+	Bone      float32
+	Tbw       float32
+	Kcal      int
+	Bmi       float32
 }
 type BodyMetrics []BodyMetric
 
@@ -22,10 +31,10 @@ type Person struct {
 }
 
 type Weight struct {
-	Valid      bool
-	BodyMetric float32
-	Timestamp  int
-	Person     int
+	Valid     bool
+	Weight    float32
+	Timestamp int
+	Person    int
 }
 
 type Body struct {
@@ -39,7 +48,7 @@ type Body struct {
 	Bone      float32
 }
 type PartialMetric struct {
-	person Person
-	weight Weight
-	body   Body
+	Person Person
+	Weight Weight
+	Body   Body
 }

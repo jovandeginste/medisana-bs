@@ -16,7 +16,7 @@ func test() {
 
 		Results here:
 		{Valid:true Person:2 Gender:male Age:33 Size:178 Activity:normal}
-		{Valid:true BodyMetric:80.2 Timestamp:1499291857 Person:2}
+		{Valid:true Weight:80.2 Timestamp:1499291857 Person:2}
 		{Valid:true Timestamp:1499291857 Person:2 Kcal:1788 Fat:19.1 Tbw:59.8 Muscle:45 Bone:4.8}
 	*/
 
@@ -67,7 +67,7 @@ func decodeWeight(data []byte) (weight Weight) {
 		person: byte 13                    [1..8]
 	*/
 	weight.Valid = (data[0] == 0x1d)
-	weight.BodyMetric = float32(decode16(data, 1)) / 100.0
+	weight.Weight = float32(decode16(data, 1)) / 100.0
 	weight.Timestamp = sanitize_timestamp(decode32(data, 5))
 	weight.Person = decode8(data, 13)
 	return
@@ -124,4 +124,25 @@ func sanitize_timestamp(timestamp int) int {
 	}
 
 	return retTS
+}
+
+func decodeData(req []byte) {
+	log.Printf("Got data: [% X]\n", req)
+	go func() {
+		result := new(PartialMetric)
+		switch req[0] {
+		case 0x84:
+			person := decodePerson(req)
+			result.Person = person
+		case 0x1D:
+			weight := decodeWeight(req)
+			result.Weight = weight
+		case 0x6F:
+			body := decodeBody(req)
+			result.Body = body
+		default:
+			log.Println("Unhandled data encountered")
+		}
+		metric_chan <- result
+	}()
 }

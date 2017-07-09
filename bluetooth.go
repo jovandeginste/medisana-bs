@@ -65,7 +65,7 @@ func explore(cln ble.Client, p *ble.Profile) error {
 		for _, c := range s.Characteristics {
 			switch fmt.Sprintf("%s", c.UUID) {
 			case "8a21", "8a22", "8a82":
-				h := func(req []byte) { parseIndication(req) }
+				h := func(req []byte) { decodeData(req) }
 
 				if err := cln.Subscribe(c, true, h); err != nil {
 					log.Printf("subscribe failed: %s\n", err)
@@ -91,26 +91,4 @@ func explore(cln ble.Client, p *ble.Profile) error {
 		}
 	}
 	return nil
-}
-
-func parseIndication(req []byte) {
-	log.Printf("Got data: [% X]\n", req)
-	go func() {
-		switch req[0] {
-		case 0x84:
-			log.Printf("Received person data: ")
-			person := decodePerson(req)
-			log.Printf("%+v\n", person)
-		case 0x1D:
-			log.Printf("Received weight data: ")
-			weight := decodeWeight(req)
-			log.Printf("%+v\n", weight)
-		case 0x6F:
-			log.Printf("Received body data: ")
-			body := decodeBody(req)
-			log.Printf("%+v\n", body)
-		default:
-			log.Println("Unhandled Indication encountered")
-		}
-	}()
 }

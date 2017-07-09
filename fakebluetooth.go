@@ -25,7 +25,7 @@ func FakeBluetooth() {
 			log.Printf("error decoding line: %+v\n", err)
 			os.Exit(1)
 		}
-		parseIndication(h)
+		decodeData(h)
 		time.Sleep(200 * time.Millisecond)
 		s, e = Readln(r)
 	}

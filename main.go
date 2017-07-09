@@ -6,12 +6,14 @@ import (
 	"strconv"
 )
 
+var metric_chan chan *PartialMetric
+
 func main() {
 	log.Println("Starting Bluetooth Scale monitor")
 
-	metric_chan := make(chan PartialMetric, 2)
+	metric_chan = make(chan *PartialMetric, 2)
 	go func() {
-		MetricParser(metric_chan)
+		MetricParser()
 	}()
 	/*
 		for i := 1; i < 8; i++ {
