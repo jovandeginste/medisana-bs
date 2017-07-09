@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math"
 )
 
 var allPersons = make([]*PersonMetrics, 8)
@@ -12,7 +13,6 @@ func MetricParser() {
 	}
 	for {
 		partial_metric := <-metric_chan
-		log.Printf("Received partial metric: %+v\n", partial_metric)
 		UpdatePerson(partial_metric.Person)
 		UpdateBody(partial_metric.Body)
 		UpdateWeight(partial_metric.Weight)
@@ -48,7 +48,7 @@ func UpdateBody(update Body) {
 		log.Printf("No body metric - creating")
 		person.BodyMetrics[update.Timestamp] = BodyMetric{}
 	}
-	bodyMetric, _ := person.BodyMetrics[update.Timestamp]
+	bodyMetric := person.BodyMetrics[update.Timestamp]
 	bodyMetric.Timestamp = update.Timestamp
 	bodyMetric.Kcal = update.Kcal
 	bodyMetric.Fat = update.Fat
@@ -69,9 +69,13 @@ func UpdateWeight(update Weight) {
 		log.Printf("No body metric - creating")
 		person.BodyMetrics[update.Timestamp] = BodyMetric{}
 	}
-	bodyMetric, _ := person.BodyMetrics[update.Timestamp]
+	bodyMetric := person.BodyMetrics[update.Timestamp]
 	bodyMetric.Weight = update.Weight
 	bodyMetric.Timestamp = update.Timestamp
+	if bodyMetric.Weight > 0 && person.Size > 0 {
+		bodyMetric.Bmi = bodyMetric.Weight / float32(math.Pow(float64(person.Size)/100, 2))
+	}
+
 	person.BodyMetrics[update.Timestamp] = bodyMetric
 	PrintPerson(person)
 }
