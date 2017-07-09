@@ -6,10 +6,12 @@ on the Pi!)
 
 # Compilation
 
+Copy `config.go.example` to `config.go` and change the parameters.
+
 All dependencies are vendored in, so you should be able to just `go build` for
 your local platform. The `Makefile` supports these platforms:
 
-  arm6 arm7 linux32 linux64
+> arm6 arm7 linux32 linux64
 
 # TODO
 
