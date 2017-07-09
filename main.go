@@ -2,16 +2,12 @@ package main
 
 import (
 	"encoding/binary"
-	"fmt"
-	"github.com/currantlabs/ble"
-	"github.com/currantlabs/ble/examples/lib/dev"
-	"golang.org/x/net/context"
+	"log"
 	"strconv"
-	"strings"
-	"time"
 )
 
 func main() {
+	log.Println("Starting Bluetooth Scale monitor")
 	for i := 1; i < 8; i++ {
 		go func(i int) {
 			new_weights := ImportCsv("csv/" + strconv.Itoa(i) + ".csv")
@@ -19,51 +15,9 @@ func main() {
 		}(i)
 	}
 
-	d, err := dev.NewDevice(device)
-	if err != nil {
-		fmt.Printf("Can't use new device: %s", err)
-	}
-	ble.SetDefaultDevice(d)
-
-	filter := func(a ble.Advertisement) bool {
-		return strings.ToUpper(a.Address().String()) == strings.ToUpper(deviceID)
-	}
-
-	for {
-		ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), scanDuration))
-		cln, err := ble.Connect(ctx, filter)
-		if err != nil {
-			fmt.Printf("Timeout: %s\n", err)
-		} else {
-			// Make sure we had the chance to print out the message.
-			done := make(chan struct{})
-			// Normally, the connection is disconnected by us after our exploration.
-			// However, it can be asynchronously disconnected by the remote peripheral.
-			// So we wait(detect) the disconnection in the go routine.
-			go func() {
-				<-cln.Disconnected()
-				fmt.Printf("[ %s ] is disconnected \n", cln.Address())
-				close(done)
-			}()
-
-			fmt.Printf("Discovering profile...\n")
-			p, err := cln.DiscoverProfile(true)
-			if err != nil {
-				fmt.Printf("can't discover profile: %s", err)
-			}
-
-			// Start the exploration.
-			explore(cln, p)
-
-			time.Sleep(sub)
-
-			// Disconnect the connection. (On OS X, this might take a while.)
-			fmt.Printf("Disconnecting [ %s ]... (this might take up to few seconds on OS X)\n", cln.Address())
-			cln.CancelConnection()
-
-			<-done
-		}
-	}
+	//StartBluetooth()
+	FakeBluetooth()
+	select {}
 }
 
 func updateData(person int, new_weights BodyMetrics) {

@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
+	"log"
 )
 
 const MaxInt = 2147483647
@@ -28,9 +28,9 @@ func test() {
 	weight := decodeWeight(weight_data)
 	body := decodeBody(body_data)
 
-	fmt.Printf("%+v\n", person)
-	fmt.Printf("%+v\n", weight)
-	fmt.Printf("%+v\n", body)
+	log.Printf("%+v\n", person)
+	log.Printf("%+v\n", weight)
+	log.Printf("%+v\n", body)
 }
 
 func decodePerson(data []byte) (person Person) {

@@ -3,9 +3,9 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
-	"fmt"
 	"github.com/gocarina/gocsv"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -22,19 +22,19 @@ func CreateCsvDir(file string) {
 }
 
 func ExportCsv(filename string, weights BodyMetrics) {
-	fmt.Printf("Writing to file '%s'.\n", filename)
+	log.Printf("Writing to file '%s'.\n", filename)
 	CreateCsvDir(filename)
 
 	f, err := os.Create(filename)
 	if err != nil {
-		fmt.Errorf("%#v", err)
+		log.Printf("%#v", err)
 	}
 	defer f.Close()
 
 	err = gocsv.MarshalWithoutHeaders(&weights, f)
 
 	if err != nil {
-		fmt.Errorf("%#v", err)
+		log.Printf("%#v", err)
 	}
 }
 
