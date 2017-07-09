@@ -1,0 +1,11 @@
+package main
+
+import (
+	"time"
+)
+
+// These are hard coded for now
+var device = "default"
+var scanDuration = 60 * time.Second
+var deviceID = "AA:BB:CC:DD:EE:FF" // The MAC address of your scale
+var sub = 60 * time.Second
