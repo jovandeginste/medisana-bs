@@ -102,6 +102,7 @@ func Debounce(lull time.Duration, in chan bool) {
 					if person.Updated {
 						log.Printf("Person %d was updated -- calling all plugins.\n", person.Person)
 						plugins.ParseData(person)
+						person.Updated = false
 					}
 				}
 			}
