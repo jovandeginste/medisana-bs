@@ -64,12 +64,12 @@ func (mail Mail) sendMail(person *structs.PersonMetrics) {
 	auth = nil
 
 	var msg string
-	msg = msg + fmt.Sprintf("From: %s\r\n", from)
-	msg = msg + fmt.Sprintf("To: %s\r\n", strings.Join(to, ";"))
-	msg = msg + fmt.Sprintf("Subject: %s\r\n", subject)
-	msg = msg + "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	msg = msg + fmt.Sprintf("From: %s\n", from)
+	msg = msg + fmt.Sprintf("To: %s\n", strings.Join(to, ";"))
+	msg = msg + fmt.Sprintf("Subject: %s\n", subject)
+	msg = msg + "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n"
 
-	msg = msg + "\r\n"
+	msg = msg + "\n"
 	parameters := struct {
 		Name     string
 		PersonId int
