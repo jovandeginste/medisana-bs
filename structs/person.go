@@ -1,9 +1,5 @@
 package structs
 
-import (
-	"sort"
-)
-
 func (person *PersonMetrics) ImportBodyMetrics(metrics []BodyMetric) {
 	for _, update := range metrics {
 		_, ok := person.BodyMetrics[update.Timestamp]
@@ -22,16 +18,4 @@ func (person *PersonMetrics) ImportBodyMetrics(metrics []BodyMetric) {
 
 		person.BodyMetrics[update.Timestamp] = bodyMetric
 	}
-}
-
-func (person *PersonMetrics) ExportBodyMetrics() {
-	weights := make(BodyMetrics, len(person.BodyMetrics))
-	idx := 0
-	for _, value := range person.BodyMetrics {
-		weights[idx] = value
-		idx++
-	}
-	sort.Sort(weights)
-	ExportCsv(person.Person, weights)
-	person.Updated = false
 }

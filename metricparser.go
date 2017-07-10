@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jovandeginste/medisana-bs/plugins"
 	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 	"math"
@@ -99,8 +100,8 @@ func Debounce(lull time.Duration, in chan bool) {
 			case <-time.Tick(lull):
 				for _, person := range allPersons {
 					if person.Updated {
-						log.Printf("Person %d was updated.\n", person.Person)
-						person.ExportBodyMetrics()
+						log.Printf("Person %d was updated -- calling all plugins.\n", person.Person)
+						plugins.ParseData(person)
 					}
 				}
 			}

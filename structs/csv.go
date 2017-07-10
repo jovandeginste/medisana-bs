@@ -3,41 +3,11 @@ package structs
 import (
 	"bufio"
 	"encoding/csv"
-	"github.com/gocarina/gocsv"
 	"io"
-	"log"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strconv"
 )
-
-func CreateCsvDir(file string) {
-	path := filepath.Dir(file)
-	mode := os.FileMode(0700)
-
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.MkdirAll(path, mode)
-	}
-}
-
-func ExportCsv(person int, weights BodyMetrics) {
-	csvFile := "csv/" + strconv.Itoa(person) + ".csv"
-	log.Printf("Writing to file '%s'.\n", csvFile)
-	CreateCsvDir(csvFile)
-
-	f, err := os.Create(csvFile)
-	if err != nil {
-		log.Printf("%#v", err)
-	}
-	defer f.Close()
-
-	err = gocsv.MarshalWithoutHeaders(&weights, f)
-
-	if err != nil {
-		log.Printf("%#v", err)
-	}
-}
 
 func ImportCsv(person int) (result BodyMetrics) {
 	csvFile := "csv/" + strconv.Itoa(person) + ".csv"

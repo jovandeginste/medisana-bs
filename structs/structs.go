@@ -57,6 +57,7 @@ type PartialMetric struct {
 
 type Plugin interface {
 	Initialize() bool
+	ParseData(person *PersonMetrics) bool
 }
 
 type Plugins map[string]Plugin
