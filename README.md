@@ -15,5 +15,6 @@ your local platform. The `Makefile` supports these platforms:
 
 # TODO
 
-* Work out event handler framework for custom parsing of data
-* Send out mails when new data was received (as a first custom parser)
+* Add more plugins
+* Test it for a significant period
+* Make some noise about it
