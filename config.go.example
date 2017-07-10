@@ -23,6 +23,7 @@ var allPlugins = structs.Plugins{
 		SenderAddress: "your.address+scale@example.org", // Address where to send the mail from
 		TemplateFile:  "templates/mail/default.html",    // Add your own template in templates/custom/
 		Subject:       "New results",                    // Subject
+		Metrics:       3,
 		Recipients: map[int]structs.MailRecipient{ // List of all recipients; the number is the person's id on the scale
 			1: structs.MailRecipient{
 				Name:    "Her Name",

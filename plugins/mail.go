@@ -20,6 +20,7 @@ type Mail struct {
 	StartTLS      bool
 	TemplateFile  string
 	Subject       string
+	Metrics       int
 }
 
 func (plugin Mail) Initialize() bool {
@@ -46,7 +47,7 @@ func (mail Mail) sendMail(person *structs.PersonMetrics) {
 	}
 	sort.Sort(metrics)
 	lastMetrics := make(map[time.Time]structs.BodyMetric)
-	for _, value := range metrics[len(metrics)-5:] {
+	for _, value := range metrics[len(metrics)-mail.Metrics:] {
 		thetime := time.Unix(int64(value.Timestamp), 0)
 		lastMetrics[thetime] = value
 	}
