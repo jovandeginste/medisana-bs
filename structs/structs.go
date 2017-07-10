@@ -61,3 +61,8 @@ type Plugin interface {
 }
 
 type Plugins map[string]Plugin
+
+type MailRecipient struct {
+	Name    string
+	Address []string
+}
