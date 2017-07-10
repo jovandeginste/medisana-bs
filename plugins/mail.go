@@ -24,13 +24,13 @@ type Mail struct {
 }
 
 func (plugin Mail) Initialize() bool {
-	log.Println("[MAIL PLUGIN] I am the Mail plugin")
-	log.Printf("[MAIL PLUGIN]   - Server: %s\n", plugin.Server)
-	log.Printf("[MAIL PLUGIN]   - StartTLS: %t\n", plugin.StartTLS)
+	log.Println("[PLUGIN MAIL] I am the Mail plugin")
+	log.Printf("[PLUGIN MAIL]   - Server: %s\n", plugin.Server)
+	log.Printf("[PLUGIN MAIL]   - StartTLS: %t\n", plugin.StartTLS)
 	return true
 }
 func (plugin Mail) ParseData(person *structs.PersonMetrics) bool {
-	log.Println("[MAIL PLUGIN] The mail plugin is parsing new data")
+	log.Println("[PLUGIN MAIL] The mail plugin is parsing new data")
 	plugin.sendMail(person)
 	return true
 }
@@ -76,14 +76,14 @@ func (mail Mail) sendMail(person *structs.PersonMetrics) {
 	}
 	body, err := ParseTemplate(mail.TemplateFile, parameters)
 	if err != nil {
-		log.Printf("[MAIL PLUGIN] An error occurred: %+v\n", err)
+		log.Printf("[PLUGIN MAIL] An error occurred: %+v\n", err)
 		return
 	}
 	msg = msg + body
 
-	log.Printf("[MAIL PLUGIN] Sending mail to %s...\n", to)
+	log.Printf("[PLUGIN MAIL] Sending mail to %s...\n", to)
 	smtp.SendMail(mail.Server, auth, mail.SenderAddress, to, []byte(msg))
-	log.Printf("[MAIL PLUGIN] Message was %d bytes.\n", len(msg))
+	log.Printf("[PLUGIN MAIL] Message was %d bytes.\n", len(msg))
 }
 
 func ParseTemplate(templateFileName string, data interface{}) (string, error) {

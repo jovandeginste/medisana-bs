@@ -26,9 +26,9 @@ func test() {
 	weight := decodeWeight(weight_data)
 	body := decodeBody(body_data)
 
-	log.Printf("%+v\n", person)
-	log.Printf("%+v\n", weight)
-	log.Printf("%+v\n", body)
+	log.Printf("[DECODE] %+v\n", person)
+	log.Printf("[DECODE] %+v\n", weight)
+	log.Printf("[DECODE] %+v\n", body)
 }
 
 func decodePerson(data []byte) (person structs.Person) {
@@ -125,7 +125,7 @@ func sanitize_timestamp(timestamp int) int {
 }
 
 func decodeData(req []byte) {
-	log.Printf("Got data: [% X]\n", req)
+	log.Printf("[DECODE] Got data: [% X]\n", req)
 	go func() {
 		result := new(structs.PartialMetric)
 		switch req[0] {
@@ -139,7 +139,7 @@ func decodeData(req []byte) {
 			body := decodeBody(req)
 			result.Body = body
 		default:
-			log.Println("Unhandled data encountered")
+			log.Println("[DECODE] Unhandled data encountered")
 		}
 		metric_chan <- result
 	}()

@@ -15,12 +15,12 @@ type Csv struct {
 }
 
 func (plugin Csv) Initialize() bool {
-	log.Println("[CSV PLUGIN] I am the CSV plugin")
-	log.Printf("[CSV PLUGIN]   - Dir: %s\n", plugin.Dir)
+	log.Println("[PLUGIN CSV] I am the CSV plugin")
+	log.Printf("[PLUGIN CSV]   - Dir: %s\n", plugin.Dir)
 	return true
 }
 func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
-	log.Println("[CSV PLUGIN] The csv plugin is parsing new data")
+	log.Println("[PLUGIN CSV] The csv plugin is parsing new data")
 	personId := person.Person
 	metrics := make(structs.BodyMetrics, len(person.BodyMetrics))
 	idx := 0
@@ -31,19 +31,19 @@ func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
 	sort.Sort(metrics)
 
 	csvFile := plugin.Dir + "/" + strconv.Itoa(personId) + ".csv"
-	log.Printf("[CSV PLUGIN] Writing to file '%s'.\n", csvFile)
+	log.Printf("[PLUGIN CSV] Writing to file '%s'.\n", csvFile)
 	CreateCsvDir(csvFile)
 
 	f, err := os.Create(csvFile)
 	if err != nil {
-		log.Printf("[CSV PLUGIN] %#v", err)
+		log.Printf("[PLUGIN CSV] %#v", err)
 	}
 	defer f.Close()
 
 	err = gocsv.MarshalWithoutHeaders(&metrics, f)
 
 	if err != nil {
-		log.Printf("[CSV PLUGIN] %#v", err)
+		log.Printf("[PLUGIN CSV] %#v", err)
 	}
 	return true
 }

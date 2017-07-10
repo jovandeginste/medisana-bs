@@ -35,7 +35,7 @@ func UpdatePerson(update structs.Person) {
 	if !update.Valid {
 		return
 	}
-	log.Printf("Received person metrics: %+v", update)
+	log.Printf("[METRIC PARSER] Received person metrics: %+v", update)
 	person := GetPersonMetrics(update.Person)
 	person.Gender = update.Gender
 	person.Age = update.Age
@@ -48,12 +48,12 @@ func UpdateBody(update structs.Body) {
 	if !update.Valid {
 		return
 	}
-	log.Printf("Received body metrics: %+v", update)
+	log.Printf("[METRIC PARSER] Received body metrics: %+v", update)
 	person := GetPersonMetrics(update.Person)
 	person.Updated = true
 	_, ok := person.BodyMetrics[update.Timestamp]
 	if !ok {
-		log.Printf("No body metric - creating")
+		log.Printf("[METRIC PARSER] No body metric - creating")
 		person.BodyMetrics[update.Timestamp] = structs.BodyMetric{}
 	}
 	bodyMetric := person.BodyMetrics[update.Timestamp]
@@ -70,12 +70,12 @@ func UpdateWeight(update structs.Weight) {
 	if !update.Valid {
 		return
 	}
-	log.Printf("Received weight metrics: %+v", update)
+	log.Printf("[METRIC PARSER] Received weight metrics: %+v", update)
 	person := GetPersonMetrics(update.Person)
 	person.Updated = true
 	_, ok := person.BodyMetrics[update.Timestamp]
 	if !ok {
-		log.Printf("No body metric - creating")
+		log.Printf("[METRIC PARSER] No body metric - creating")
 		person.BodyMetrics[update.Timestamp] = structs.BodyMetric{}
 	}
 	bodyMetric := person.BodyMetrics[update.Timestamp]
@@ -89,7 +89,7 @@ func UpdateWeight(update structs.Weight) {
 	PrintPerson(person)
 }
 func PrintPerson(person *structs.PersonMetrics) {
-	log.Printf("Person %d now has %d metrics.\n", person.Person, len(person.BodyMetrics))
+	log.Printf("[METRIC PARSER] Person %d now has %d metrics.\n", person.Person, len(person.BodyMetrics))
 }
 
 func Debounce(lull time.Duration, in chan bool) {
@@ -100,7 +100,7 @@ func Debounce(lull time.Duration, in chan bool) {
 			case <-time.Tick(lull):
 				for _, person := range allPersons {
 					if person.Updated {
-						log.Printf("Person %d was updated -- calling all plugins.\n", person.Person)
+						log.Printf("[METRIC PARSER] Person %d was updated -- calling all plugins.\n", person.Person)
 						plugins.ParseData(person)
 						person.Updated = false
 					}

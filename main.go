@@ -18,8 +18,8 @@ func main() {
 	}()
 
 	go func() {
-		StartBluetooth()
-		//FakeBluetooth()
+		//StartBluetooth()
+		FakeBluetooth()
 	}()
 
 	select {}
