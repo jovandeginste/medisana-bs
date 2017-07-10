@@ -26,7 +26,12 @@ type Mail struct {
 func (plugin Mail) Initialize() bool {
 	log.Println("[PLUGIN MAIL] I am the Mail plugin")
 	log.Printf("[PLUGIN MAIL]   - Server: %s\n", plugin.Server)
-	log.Printf("[PLUGIN MAIL]   - StartTLS: %t\n", plugin.StartTLS)
+	log.Printf("[PLUGIN MAIL]   - StartTLS: %t [ To be implemented !!! ]\n", plugin.StartTLS)
+	log.Printf("[PLUGIN MAIL]   - SenderName: %s\n", plugin.SenderName)
+	log.Printf("[PLUGIN MAIL]   - SenderAddress: %s\n", plugin.SenderAddress)
+	log.Printf("[PLUGIN MAIL]   - TemplateFile: %s\n", plugin.TemplateFile)
+	log.Printf("[PLUGIN MAIL]   - Subject: %s\n", plugin.Subject)
+	log.Printf("[PLUGIN MAIL]   - Metrics: %d\n", plugin.Metrics)
 	return true
 }
 func (plugin Mail) ParseData(person *structs.PersonMetrics) bool {
