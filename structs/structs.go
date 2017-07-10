@@ -1,4 +1,4 @@
-package main
+package structs
 
 type PersonMetrics struct {
 	Person      int
@@ -54,3 +54,9 @@ type PartialMetric struct {
 	Weight Weight
 	Body   Body
 }
+
+type Plugin interface {
+	Initialize() bool
+}
+
+type Plugins map[string]Plugin

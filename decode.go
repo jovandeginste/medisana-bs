@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 )
 
@@ -30,7 +31,7 @@ func test() {
 	log.Printf("%+v\n", body)
 }
 
-func decodePerson(data []byte) (person Person) {
+func decodePerson(data []byte) (person structs.Person) {
 	/*
 		fixed: byte 0                       [0x84]
 		person: byte 2                      [1..8]
@@ -56,7 +57,7 @@ func decodePerson(data []byte) (person Person) {
 	return
 }
 
-func decodeWeight(data []byte) (weight Weight) {
+func decodeWeight(data []byte) (weight structs.Weight) {
 	/*
 		fixed: byte: 0                     [0x1d]
 		weight: byte: 1 & 2                [kg*100]
@@ -70,7 +71,7 @@ func decodeWeight(data []byte) (weight Weight) {
 	return
 }
 
-func decodeBody(data []byte) (body Body) {
+func decodeBody(data []byte) (body structs.Body) {
 	/*
 		fixed: byte 0                      [0x6f]
 		timestamp: byte 1-4                Unix timestamp
@@ -126,7 +127,7 @@ func sanitize_timestamp(timestamp int) int {
 func decodeData(req []byte) {
 	log.Printf("Got data: [% X]\n", req)
 	go func() {
-		result := new(PartialMetric)
+		result := new(structs.PartialMetric)
 		switch req[0] {
 		case 0x84:
 			person := decodePerson(req)

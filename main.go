@@ -2,33 +2,28 @@ package main
 
 import (
 	"encoding/binary"
+	"github.com/jovandeginste/medisana-bs/plugins"
+	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 )
 
-var metric_chan chan *PartialMetric
+var metric_chan chan *structs.PartialMetric
 
 func main() {
 	log.Println("Starting Bluetooth Scale monitor")
 
-	metric_chan = make(chan *PartialMetric, 2)
+	plugins.Initialize(allPlugins)
+	metric_chan = make(chan *structs.PartialMetric, 2)
 	go func() {
 		MetricParser()
 	}()
 
 	go func() {
-		StartBluetooth()
-		//FakeBluetooth()
+		//StartBluetooth()
+		FakeBluetooth()
 	}()
 
 	select {}
-}
-
-func updateData(person int, new_weights BodyMetrics) {
-	cur_weights := ImportCsv(person)
-
-	cur_weights = mergeSort(cur_weights, new_weights)
-
-	ExportCsv(person, cur_weights)
 }
 
 func generateTime(therealtime int64) []byte {

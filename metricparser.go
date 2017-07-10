@@ -1,17 +1,18 @@
 package main
 
 import (
+	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 	"math"
 	"time"
 )
 
-var allPersons = make([]*PersonMetrics, 8)
+var allPersons = make([]*structs.PersonMetrics, 8)
 
 func MetricParser() {
 	for i := range allPersons {
-		allPersons[i] = &PersonMetrics{Person: i + 1, BodyMetrics: make(map[int]BodyMetric)}
-		allPersons[i].ImportBodyMetrics(ImportCsv(i + 1))
+		allPersons[i] = &structs.PersonMetrics{Person: i + 1, BodyMetrics: make(map[int]structs.BodyMetric)}
+		allPersons[i].ImportBodyMetrics(structs.ImportCsv(i + 1))
 	}
 	sync_chan := make(chan bool)
 	Debounce(3*time.Second, sync_chan)
@@ -24,12 +25,12 @@ func MetricParser() {
 	}
 }
 
-func GetPersonMetrics(personId int) *PersonMetrics {
+func GetPersonMetrics(personId int) *structs.PersonMetrics {
 	person := allPersons[personId-1]
 	return person
 }
 
-func UpdatePerson(update Person) {
+func UpdatePerson(update structs.Person) {
 	if !update.Valid {
 		return
 	}
@@ -42,7 +43,7 @@ func UpdatePerson(update Person) {
 	PrintPerson(person)
 }
 
-func UpdateBody(update Body) {
+func UpdateBody(update structs.Body) {
 	if !update.Valid {
 		return
 	}
@@ -52,7 +53,7 @@ func UpdateBody(update Body) {
 	_, ok := person.BodyMetrics[update.Timestamp]
 	if !ok {
 		log.Printf("No body metric - creating")
-		person.BodyMetrics[update.Timestamp] = BodyMetric{}
+		person.BodyMetrics[update.Timestamp] = structs.BodyMetric{}
 	}
 	bodyMetric := person.BodyMetrics[update.Timestamp]
 	bodyMetric.Timestamp = update.Timestamp
@@ -64,7 +65,7 @@ func UpdateBody(update Body) {
 	person.BodyMetrics[update.Timestamp] = bodyMetric
 	PrintPerson(person)
 }
-func UpdateWeight(update Weight) {
+func UpdateWeight(update structs.Weight) {
 	if !update.Valid {
 		return
 	}
@@ -74,7 +75,7 @@ func UpdateWeight(update Weight) {
 	_, ok := person.BodyMetrics[update.Timestamp]
 	if !ok {
 		log.Printf("No body metric - creating")
-		person.BodyMetrics[update.Timestamp] = BodyMetric{}
+		person.BodyMetrics[update.Timestamp] = structs.BodyMetric{}
 	}
 	bodyMetric := person.BodyMetrics[update.Timestamp]
 	bodyMetric.Weight = update.Weight
@@ -86,7 +87,7 @@ func UpdateWeight(update Weight) {
 	person.BodyMetrics[update.Timestamp] = bodyMetric
 	PrintPerson(person)
 }
-func PrintPerson(person *PersonMetrics) {
+func PrintPerson(person *structs.PersonMetrics) {
 	log.Printf("Person %d now has %d metrics.\n", person.Person, len(person.BodyMetrics))
 }
 
