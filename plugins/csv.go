@@ -22,13 +22,13 @@ func (plugin Csv) Initialize() bool {
 func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
 	log.Println("The csv plugin is parsing new data")
 	personId := person.Person
-	weights := make(structs.BodyMetrics, len(person.BodyMetrics))
+	metrics := make(structs.BodyMetrics, len(person.BodyMetrics))
 	idx := 0
 	for _, value := range person.BodyMetrics {
-		weights[idx] = value
+		metrics[idx] = value
 		idx++
 	}
-	sort.Sort(weights)
+	sort.Sort(metrics)
 
 	csvFile := plugin.Dir + "/" + strconv.Itoa(personId) + ".csv"
 	log.Printf("Writing to file '%s'.\n", csvFile)
@@ -40,7 +40,7 @@ func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
 	}
 	defer f.Close()
 
-	err = gocsv.MarshalWithoutHeaders(&weights, f)
+	err = gocsv.MarshalWithoutHeaders(&metrics, f)
 
 	if err != nil {
 		log.Printf("%#v", err)
