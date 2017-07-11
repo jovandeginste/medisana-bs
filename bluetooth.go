@@ -12,18 +12,18 @@ import (
 )
 
 func StartBluetooth() {
-	d, err := dev.NewDevice(device)
+	d, err := dev.NewDevice(config.Device)
 	if err != nil {
 		log.Printf("[BLUETOOTH] Can't use new device: %s", err)
 	}
 	ble.SetDefaultDevice(d)
 
 	filter := func(a ble.Advertisement) bool {
-		return strings.ToUpper(a.Address().String()) == strings.ToUpper(deviceID)
+		return strings.ToUpper(a.Address().String()) == strings.ToUpper(config.DeviceID)
 	}
 
 	for {
-		ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), scanDuration))
+		ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
 		cln, err := ble.Connect(ctx, filter)
 		if err != nil {
 			log.Printf("[BLUETOOTH] Timeout: %s\n", err)
@@ -48,7 +48,7 @@ func StartBluetooth() {
 			// Start the exploration.
 			explore(cln, p)
 
-			time.Sleep(sub)
+			time.Sleep(config.Sub.AsTimeDuration())
 
 			// Disconnect the connection. (On OS X, this might take a while.)
 			log.Printf("[BLUETOOTH] Disconnecting [ %s ]... (this might take up to few seconds on OS X)\n", cln.Address())

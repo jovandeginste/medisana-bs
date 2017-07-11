@@ -1,5 +1,9 @@
 package structs
 
+import (
+	"time"
+)
+
 type PersonMetrics struct {
 	Person      int
 	Gender      string
@@ -55,14 +59,33 @@ type PartialMetric struct {
 	Body   Body
 }
 
+type Plugins map[string]Plugin
+
 type Plugin interface {
 	Initialize() bool
 	ParseData(person *PersonMetrics) bool
 }
 
-type Plugins map[string]Plugin
+type Config struct {
+	Device       string
+	ScanDuration duration
+	DeviceID     string
+	Sub          duration
+	CsvDir       string
+	Time_offset  int
+	Fakeit       bool
+	Plugins      interface{}
+}
 
-type MailRecipient struct {
-	Name    string
-	Address []string
+type duration struct {
+	time.Duration
+}
+
+func (d *duration) UnmarshalText(text []byte) error {
+	var err error
+	d.Duration, err = time.ParseDuration(string(text))
+	return err
+}
+func (d duration) AsTimeDuration() time.Duration {
+	return d.Duration
 }

@@ -7,18 +7,25 @@ import (
 )
 
 var metric_chan chan *structs.PartialMetric
+var config structs.Config
 
 func main() {
-	log.Println("[MAIN] Starting Bluetooth Scale monitor")
+	log.Println("[MAIN] Initializing Bluetooth Scale monitor")
 
-	plugins.Initialize(allPlugins)
+	config = ReadConfig("config.toml")
+
+	log.Printf("Configuration: %+v\n", config)
+
+	plugins.Initialize(config.Plugins)
 	metric_chan = make(chan *structs.PartialMetric, 2)
 	go func() {
 		MetricParser()
 	}()
 
+	log.Println("[MAIN] Starting Bluetooth Scale monitor")
+
 	go func() {
-		if fakeit {
+		if config.Fakeit {
 			FakeBluetooth()
 		} else {
 			StartBluetooth()

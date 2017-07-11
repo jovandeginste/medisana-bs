@@ -16,11 +16,20 @@ type Mail struct {
 	Server        string
 	SenderName    string
 	SenderAddress string
-	Recipients    map[int]structs.MailRecipient
+	Recipients    map[int]MailRecipient
 	StartTLS      bool
 	TemplateFile  string
 	Subject       string
 	Metrics       int
+}
+type MailRecipient struct {
+	Name    string
+	Address []string
+}
+
+func MailPlugin(c interface{}) structs.Plugin {
+	p := new(Mail)
+	return p
 }
 
 func (plugin Mail) Initialize() bool {

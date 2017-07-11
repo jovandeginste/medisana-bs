@@ -8,12 +8,23 @@ import (
 
 var allPlugins structs.Plugins
 
-func Initialize(ap structs.Plugins) {
-	allPlugins = ap
+var PluginMap = map[string](func(c interface{}) structs.Plugin){
+	"mail": MailPlugin,
+	"csv":  CsvPlugin,
+}
+
+func Initialize(configuration interface{}) {
+	ap := configuration.(map[string]interface{})
+	allPlugins = structs.Plugins{}
+
+	log.Printf("%+v\n", ap)
 	log.Println("[PLUGIN] Initializing plugins")
-	for name, plugin := range allPlugins {
+	for name, plugin_config := range ap {
 		log.Printf("[PLUGIN]  --> %s\n", name)
+		plugin_builder := PluginMap[name]
+		plugin := plugin_builder(plugin_config)
 		result := plugin.Initialize()
+		allPlugins[name] = plugin
 		if result {
 			log.Println("[PLUGIN]  *-> success")
 		} else {
@@ -22,6 +33,7 @@ func Initialize(ap structs.Plugins) {
 		}
 	}
 	log.Println("[PLUGIN] All plugins initialized.")
+	log.Printf("%+v\n", allPlugins)
 }
 
 func ParseData(person *structs.PersonMetrics) {
