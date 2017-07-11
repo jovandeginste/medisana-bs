@@ -1,0 +1,25 @@
+device = "default"
+scanDuration = "60s"
+deviceID = "AA:BB:CC:DD:EE:FF" # MAC address of your scale
+sub = "60s"
+csvDir = "./csv"
+# time_offset = 1262304000 # seconds for BS410
+time_offset = 0 # seconds for most BS devices
+
+[plugins]
+[plugins.mail]
+Server=        "localhost:25" # Enter your smtp server
+SenderName=    "Your scale"
+SenderAddress= "your.address+scale@example.com"
+TemplateFile=  "templates/mail/default.html"
+Subject=       "New data received"
+Metrics=       5
+[plugins.mail.Recipients]
+[plugins.mail.Recipients.1]
+Name=    "Her Name"
+Address= ["her.name@example.com"]
+[plugins.mail.Recipients.2]
+Name=    "His Name"
+Address= ["his.name@example.com", "someone.else@example.com"]
+[plugins.csv]
+Dir = "./csv"

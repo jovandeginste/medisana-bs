@@ -4,28 +4,27 @@ import (
 	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 	"os"
+	"reflect"
 )
 
-var allPlugins structs.Plugins
+var allPlugins map[string]structs.Plugin
 
-var PluginMap = map[string](func(c interface{}) structs.Plugin){
-	"mail": MailPlugin,
-	"csv":  CsvPlugin,
+var pluginRegistry = map[string]reflect.Type{
+	"mail": reflect.TypeOf(Mail{}),
+	"csv":  reflect.TypeOf(Csv{}),
 }
 
 func Initialize(configuration interface{}) {
 	ap := configuration.(map[string]interface{})
-	allPlugins = structs.Plugins{}
+	allPlugins = make(map[string]structs.Plugin)
 
-	log.Printf("%+v\n", ap)
 	log.Println("[PLUGIN] Initializing plugins")
 	for name, plugin_config := range ap {
 		log.Printf("[PLUGIN]  --> %s\n", name)
-		plugin_builder := PluginMap[name]
-		plugin := plugin_builder(plugin_config)
-		result := plugin.Initialize()
-		allPlugins[name] = plugin
-		if result {
+		plugin_type := pluginRegistry[name]
+		plugin_builder := reflect.New(plugin_type).Elem().Interface().(structs.Plugin)
+		allPlugins[name] = plugin_builder.Initialize(plugin_config)
+		if allPlugins[name] != nil {
 			log.Println("[PLUGIN]  *-> success")
 		} else {
 			log.Println("[PLUGIN]  !-> FAILED")
@@ -33,7 +32,6 @@ func Initialize(configuration interface{}) {
 		}
 	}
 	log.Println("[PLUGIN] All plugins initialized.")
-	log.Printf("%+v\n", allPlugins)
 }
 
 func ParseData(person *structs.PersonMetrics) {

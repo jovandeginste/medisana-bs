@@ -14,15 +14,12 @@ type Csv struct {
 	Dir string
 }
 
-func CsvPlugin(c interface{}) structs.Plugin {
-	p := new(Csv)
-	return p
-}
-
-func (plugin Csv) Initialize() bool {
+func (plugin Csv) Initialize(c interface{}) structs.Plugin {
+	newc := c.(map[string]interface{})
+	plugin.Dir = newc["Dir"].(string)
 	log.Println("[PLUGIN CSV] I am the CSV plugin")
 	log.Printf("[PLUGIN CSV]   - Dir: %s\n", plugin.Dir)
-	return true
+	return plugin
 }
 func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
 	log.Println("[PLUGIN CSV] The csv plugin is parsing new data")

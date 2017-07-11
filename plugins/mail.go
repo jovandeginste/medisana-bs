@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/smtp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -27,12 +28,41 @@ type MailRecipient struct {
 	Address []string
 }
 
-func MailPlugin(c interface{}) structs.Plugin {
-	p := new(Mail)
-	return p
-}
+func (plugin Mail) Initialize(c interface{}) structs.Plugin {
+	newc := c.(map[string]interface{})
+	plugin.Server = newc["Server"].(string)
+	plugin.SenderName = newc["SenderName"].(string)
+	plugin.SenderAddress = newc["SenderAddress"].(string)
+	if newc["StartTLS"] != nil {
+		plugin.StartTLS = newc["StartTLS"].(bool)
+	} else {
+		plugin.StartTLS = false
+	}
+	plugin.TemplateFile = newc["TemplateFile"].(string)
+	plugin.Subject = newc["Subject"].(string)
+	plugin.Metrics = int(newc["Metrics"].(int64))
+	plugin.Recipients = make(map[int]MailRecipient)
 
-func (plugin Mail) Initialize() bool {
+	recipients := newc["Recipients"].(map[string]interface{})
+	for number, rec_config := range recipients {
+		id, err := strconv.Atoi(number)
+		if err != nil {
+			log.Printf("[PLUGIN MAIL] Configuration for non-numerical recipient id '%v'", id)
+		} else {
+			conv_rec_config := rec_config.(map[string]interface{})
+			unconv_address := conv_rec_config["Address"].([]interface{})
+			address := make([]string, len(unconv_address))
+			for i := range unconv_address {
+				address[i] = unconv_address[i].(string)
+			}
+			log.Printf("%+v", address)
+			plugin.Recipients[id] = MailRecipient{
+				Name:    conv_rec_config["Name"].(string),
+				Address: address,
+			}
+		}
+	}
+
 	log.Println("[PLUGIN MAIL] I am the Mail plugin")
 	log.Printf("[PLUGIN MAIL]   - Server: %s\n", plugin.Server)
 	log.Printf("[PLUGIN MAIL]   - StartTLS: %t [ To be implemented !!! ]\n", plugin.StartTLS)
@@ -41,7 +71,8 @@ func (plugin Mail) Initialize() bool {
 	log.Printf("[PLUGIN MAIL]   - TemplateFile: %s\n", plugin.TemplateFile)
 	log.Printf("[PLUGIN MAIL]   - Subject: %s\n", plugin.Subject)
 	log.Printf("[PLUGIN MAIL]   - Metrics: %d\n", plugin.Metrics)
-	return true
+	log.Printf("[PLUGIN MAIL]   - Recipients: %d\n", len(plugin.Recipients))
+	return plugin
 }
 func (plugin Mail) ParseData(person *structs.PersonMetrics) bool {
 	log.Println("[PLUGIN MAIL] The mail plugin is parsing new data")
@@ -95,7 +126,7 @@ func (mail Mail) sendMail(person *structs.PersonMetrics) {
 	}
 	msg = msg + body
 
-	log.Printf("[PLUGIN MAIL] Sending mail to %s...\n", to)
+	log.Printf("[PLUGIN MAIL] Sending mail from %s to %s...\n", from, to)
 	smtp.SendMail(mail.Server, auth, mail.SenderAddress, to, []byte(msg))
 	log.Printf("[PLUGIN MAIL] Message was %d bytes.\n", len(msg))
 }
