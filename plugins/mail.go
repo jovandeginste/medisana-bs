@@ -55,7 +55,6 @@ func (plugin Mail) Initialize(c interface{}) structs.Plugin {
 			for i := range unconv_address {
 				address[i] = unconv_address[i].(string)
 			}
-			log.Printf("%+v", address)
 			plugin.Recipients[id] = MailRecipient{
 				Name:    conv_rec_config["Name"].(string),
 				Address: address,
