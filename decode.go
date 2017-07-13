@@ -125,7 +125,6 @@ func sanitize_timestamp(timestamp int) int {
 }
 
 func decodeData(req []byte) {
-	log.Printf("[DECODE] Got data: [% X]\n", req)
 	go func() {
 		result := new(structs.PartialMetric)
 		switch req[0] {
@@ -139,7 +138,7 @@ func decodeData(req []byte) {
 			body := decodeBody(req)
 			result.Body = body
 		default:
-			log.Println("[DECODE] Unhandled data encountered")
+			log.Printf("[DECODE] Unhandled data encountered: [% X]\n", req)
 		}
 		metric_chan <- result
 	}()

@@ -14,8 +14,6 @@ func main() {
 
 	config = ReadConfig("config.toml")
 
-	log.Printf("Configuration: %+v\n", config)
-
 	plugins.Initialize(config.Plugins)
 	metric_chan = make(chan *structs.PartialMetric, 2)
 	go func() {
@@ -24,13 +22,9 @@ func main() {
 
 	log.Println("[MAIN] Starting Bluetooth Scale monitor")
 
-	go func() {
-		if config.Fakeit {
-			FakeBluetooth()
-		} else {
-			StartBluetooth()
-		}
-	}()
-
-	select {}
+	if config.Fakeit {
+		FakeBluetooth()
+	} else {
+		StartBluetooth()
+	}
 }
