@@ -22,43 +22,45 @@ func StartBluetooth() {
 		return strings.ToUpper(a.Address().String()) == strings.ToUpper(config.DeviceID)
 	}
 
-	time.Sleep(1 * time.Second)
-	ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
-	log.Println("[BLUETOOTH] Starting scan...")
-	cln, err := ble.Connect(ctx, filter)
+	for {
+		time.Sleep(1 * time.Second)
+		ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
+		log.Println("[BLUETOOTH] Starting scan...")
+		cln, err := ble.Connect(ctx, filter)
 
-	if err != nil {
-		log.Printf("[BLUETOOTH] Scan timeout: %s\n", err)
-	} else {
-		// Normally, the connection is disconnected by us after our exploration.
-		// However, it can be asynchronously disconnected by the remote peripheral.
-		// So we wait(detect) the disconnection in the go routine.
-		go func() {
-			select {
-			case <-cln.Disconnected():
-				log.Printf("[BLUETOOTH] [ %s ] is disconnected \n", cln.Address())
-			case <-time.After(config.Sub.AsTimeDuration()):
-				fmt.Println("[BLUETOOTH] [ %s ] timed out\n", cln.Address())
-			}
-		}()
-
-		log.Printf("[BLUETOOTH] [ %s ] is connected ... Name: '%s'\n", cln.Address(), cln.Name())
-		log.Println("[BLUETOOTH] Discovering profile...")
-		p, err := cln.DiscoverProfile(true)
 		if err != nil {
-			log.Printf("[BLUETOOTH] can't discover profile: %s", err)
+			log.Printf("[BLUETOOTH] Scan timeout: %s\n", err)
 		} else {
+			// Normally, the connection is disconnected by us after our exploration.
+			// However, it can be asynchronously disconnected by the remote peripheral.
+			// So we wait(detect) the disconnection in the go routine.
+			go func() {
+				select {
+				case <-cln.Disconnected():
+					log.Printf("[BLUETOOTH] [ %s ] is disconnected \n", cln.Address())
+				case <-time.After(config.Sub.AsTimeDuration()):
+					fmt.Println("[BLUETOOTH] [ %s ] timed out\n", cln.Address())
+				}
+			}()
 
-			// Start the exploration.
-			explore(cln, p)
+			log.Printf("[BLUETOOTH] [ %s ] is connected ... Name: '%s'\n", cln.Address(), cln.Name())
+			log.Println("[BLUETOOTH] Discovering profile...")
+			p, err := cln.DiscoverProfile(true)
+			if err != nil {
+				log.Printf("[BLUETOOTH] can't discover profile: %s", err)
+			} else {
 
-			log.Printf("[BLUETOOTH] Discovery done, waiting %d seconds before disconnecting.\n", config.Sub.AsTimeDuration())
-			time.Sleep(config.Sub.AsTimeDuration())
+				// Start the exploration.
+				explore(cln, p)
 
-			// Disconnect the connection. (On OS X, this might take a while.)
-			log.Printf("[BLUETOOTH] Disconnecting [ %s ]... (this might take up to few seconds on OS X)\n", cln.Address())
-			cln.ClearSubscriptions()
-			cln.CancelConnection()
+				log.Printf("[BLUETOOTH] Discovery done, waiting %d seconds before disconnecting.\n", config.Sub.AsTimeDuration())
+				time.Sleep(config.Sub.AsTimeDuration())
+
+				// Disconnect the connection. (On OS X, this might take a while.)
+				log.Printf("[BLUETOOTH] Disconnecting [ %s ]... (this might take up to few seconds on OS X)\n", cln.Address())
+				cln.ClearSubscriptions()
+				cln.CancelConnection()
+			}
 		}
 	}
 }

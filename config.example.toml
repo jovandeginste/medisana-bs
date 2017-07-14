@@ -1,5 +1,5 @@
 device = "default"
-scanDuration = "60s"
+scanDuration = "20s" # Should be around half the time your scale sends the data
 deviceID = "AA:BB:CC:DD:EE:FF" # MAC address of your scale
 sub = "30s"
 csvDir = "./csv"
