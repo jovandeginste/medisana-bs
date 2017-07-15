@@ -4,14 +4,13 @@ import (
 	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 	"os"
-	"reflect"
 )
 
 var allPlugins map[string]structs.Plugin
 
-var pluginRegistry = map[string]reflect.Type{
-	"mail": reflect.TypeOf(Mail{}),
-	"csv":  reflect.TypeOf(Csv{}),
+var pluginRegistry = map[string]interface{}{
+	"mail": Mail{},
+	"csv":  Csv{},
 }
 
 // Initialize all plugins from configuration
@@ -23,8 +22,7 @@ func Initialize(configuration structs.Config) {
 	for name, _ := range ap {
 		log.Printf("[PLUGIN]  --> %s\n", name)
 		pluginType := pluginRegistry[name]
-		pluginBuilder := reflect.New(pluginType).Elem().Interface().(structs.Plugin)
-		allPlugins[name] = pluginBuilder.Initialize(configuration)
+		allPlugins[name] = pluginType.(structs.Plugin).Initialize(configuration)
 		if allPlugins[name] != nil {
 			log.Println("[PLUGIN]  *-> success")
 		} else {
