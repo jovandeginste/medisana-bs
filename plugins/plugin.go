@@ -19,7 +19,7 @@ func Initialize(configuration structs.Config) {
 	allPlugins = make(map[string]structs.Plugin)
 
 	log.Println("[PLUGIN] Initializing plugins")
-	for name, _ := range ap {
+	for name := range ap {
 		log.Printf("[PLUGIN]  --> %s\n", name)
 		pluginType := pluginRegistry[name]
 		allPlugins[name] = pluginType.(structs.Plugin).Initialize(configuration)
