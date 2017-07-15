@@ -15,16 +15,16 @@ var pluginRegistry = map[string]reflect.Type{
 }
 
 // Initialize all plugins from configuration
-func Initialize(configuration interface{}) {
-	ap := configuration.(map[string]interface{})
+func Initialize(configuration structs.Config) {
+	ap := configuration.Plugins
 	allPlugins = make(map[string]structs.Plugin)
 
 	log.Println("[PLUGIN] Initializing plugins")
-	for name, pluginConfig := range ap {
+	for name, _ := range ap {
 		log.Printf("[PLUGIN]  --> %s\n", name)
 		pluginType := pluginRegistry[name]
 		pluginBuilder := reflect.New(pluginType).Elem().Interface().(structs.Plugin)
-		allPlugins[name] = pluginBuilder.Initialize(pluginConfig)
+		allPlugins[name] = pluginBuilder.Initialize(configuration)
 		if allPlugins[name] != nil {
 			log.Println("[PLUGIN]  *-> success")
 		} else {

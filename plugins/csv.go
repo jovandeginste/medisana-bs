@@ -16,9 +16,9 @@ type Csv struct {
 }
 
 // Initialize the Csv plugin
-func (plugin Csv) Initialize(c interface{}) structs.Plugin {
-	newc := c.(map[string]interface{})
-	plugin.Dir = newc["Dir"].(string)
+func (plugin Csv) Initialize(c structs.Config) structs.Plugin {
+	newc := c.Plugins["csv"]
+	plugin.Dir = newc.Dir
 	log.Println("[PLUGIN CSV] I am the CSV plugin")
 	log.Printf("[PLUGIN CSV]   - Dir: %s\n", plugin.Dir)
 	return plugin

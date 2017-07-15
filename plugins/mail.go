@@ -18,7 +18,7 @@ type Mail struct {
 	Server        string
 	SenderName    string
 	SenderAddress string
-	Recipients    map[int]MailRecipient
+	Recipients    map[string]structs.MailRecipient
 	StartTLS      bool
 	TemplateFile  string
 	Subject       string
@@ -32,40 +32,11 @@ type MailRecipient struct {
 }
 
 // Initialize the Mail plugin
-func (plugin Mail) Initialize(c interface{}) structs.Plugin {
-	newc := c.(map[string]interface{})
-	plugin.Server = newc["Server"].(string)
-	plugin.SenderName = newc["SenderName"].(string)
-	plugin.SenderAddress = newc["SenderAddress"].(string)
-	if newc["StartTLS"] != nil {
-		plugin.StartTLS = newc["StartTLS"].(bool)
-	} else {
-		plugin.StartTLS = false
-	}
-	plugin.TemplateFile = newc["TemplateFile"].(string)
-	plugin.Subject = newc["Subject"].(string)
-	plugin.Metrics = int(newc["Metrics"].(int64))
-	plugin.Recipients = make(map[int]MailRecipient)
-
-	recipients := newc["Recipients"].(map[string]interface{})
-	for number, recConfig := range recipients {
-		id, err := strconv.Atoi(number)
-		if err != nil {
-			log.Printf("[PLUGIN MAIL] Configuration for non-numerical recipient id '%v'", id)
-		} else {
-			convRecConfig := recConfig.(map[string]interface{})
-			unconvAddress := convRecConfig["Address"].([]interface{})
-			address := make([]string, len(unconvAddress))
-			for i := range unconvAddress {
-				address[i] = unconvAddress[i].(string)
-			}
-			plugin.Recipients[id] = MailRecipient{
-				Name:    convRecConfig["Name"].(string),
-				Address: address,
-			}
-		}
-	}
-
+func (plugin Mail) Initialize(c structs.Config) structs.Plugin {
+	newc := c.Plugins["mail"]
+	p := Mail{newc.Server, newc.SenderName, newc.SenderAddress, newc.Recipients, newc.StartTLS,
+		newc.TemplateFile, newc.Subject, newc.Metrics}
+	plugin = p
 	log.Println("[PLUGIN MAIL] I am the Mail plugin")
 	log.Printf("[PLUGIN MAIL]   - Server: %s\n", plugin.Server)
 	log.Printf("[PLUGIN MAIL]   - StartTLS: %t [ To be implemented !!! ]\n", plugin.StartTLS)
@@ -87,7 +58,7 @@ func (plugin Mail) ParseData(person *structs.PersonMetrics) bool {
 
 func (mail Mail) sendMail(person *structs.PersonMetrics) {
 	personID := person.Person
-	recipient := mail.Recipients[personID]
+	recipient := mail.Recipients[strconv.Itoa(personID)]
 	subject := mail.Subject
 
 	metrics := make(structs.BodyMetrics, len(person.BodyMetrics))
