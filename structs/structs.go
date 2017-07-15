@@ -80,7 +80,7 @@ type Config struct {
 	DeviceID     string
 	Sub          duration
 	CsvDir       string
-	TimeOffset  int
+	TimeOffset   int
 	Fakeit       bool
 	Plugins      map[string]PluginConfig
 }

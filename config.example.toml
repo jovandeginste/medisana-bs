@@ -4,7 +4,7 @@ deviceID = "AA:BB:CC:DD:EE:FF" # MAC address of your scale
 sub = "15s"
 csvDir = "./csv"
 # time_offset = 1262304000 # seconds for BS410
-time_offset = 0 # seconds for most BS devices
+timeOffset = 0 # seconds for most BS devices
 
 [plugins]
 [plugins.mail]
