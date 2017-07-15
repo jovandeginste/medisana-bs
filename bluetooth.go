@@ -24,7 +24,6 @@ func StartBluetooth() {
 	}
 
 	for {
-		time.Sleep(1 * time.Second)
 		ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
 		log.Println("[BLUETOOTH] Starting scan...")
 		cln, err := ble.Connect(ctx, filter)
@@ -60,9 +59,10 @@ func StartBluetooth() {
 
 				// Disconnect the connection. (On OS X, this might take a while.)
 				log.Printf("[BLUETOOTH] Disconnecting [ %s ]... (this might take up to few seconds on OS X)\n", cln.Address())
-				cln.ClearSubscriptions()
-				cln.CancelConnection()
 			}
+			cln.ClearSubscriptions()
+			cln.CancelConnection()
+			time.Sleep(5 * time.Second)
 		}
 	}
 }
