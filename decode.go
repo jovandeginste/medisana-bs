@@ -87,8 +87,8 @@ func decode32(data []byte, firstByte int) int {
 
 func sanitizeTimestamp(timestamp int) int {
 	retTS := 0
-	if timestamp+config.Time_offset < math.MaxInt32 {
-		retTS = timestamp + config.Time_offset
+	if timestamp+config.TimeOffset < math.MaxInt32 {
+		retTS = timestamp + config.TimeOffset
 	} else {
 		retTS = timestamp
 	}

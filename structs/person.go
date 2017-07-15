@@ -1,5 +1,6 @@
 package structs
 
+// ImportBodyMetrics will import extra metrics to a person
 func (person *PersonMetrics) ImportBodyMetrics(metrics []BodyMetric) {
 	for _, update := range metrics {
 		_, ok := person.BodyMetrics[update.Timestamp]

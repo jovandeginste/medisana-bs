@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// PersonMetrics has all data about a single person, including a list of measurements (body metrics)
 type PersonMetrics struct {
 	Person      int
 	Gender      string
@@ -14,6 +15,7 @@ type PersonMetrics struct {
 	BodyMetrics map[int]BodyMetric
 }
 
+// BodyMetric is a single tuple of measurements for a given person
 type BodyMetric struct {
 	Timestamp int
 	Weight    float32
@@ -25,8 +27,10 @@ type BodyMetric struct {
 	Bmi       float32
 }
 
+// BodyMetrics is shorthand for a list of BodyMetrics
 type BodyMetrics []BodyMetric
 
+// Person contains some fairly static data about a person
 type Person struct {
 	Valid    bool
 	Person   int
@@ -36,6 +40,7 @@ type Person struct {
 	Activity string
 }
 
+// Weight contains a single weight measurement for a person
 type Weight struct {
 	Valid     bool
 	Weight    float32
@@ -43,6 +48,7 @@ type Weight struct {
 	Person    int
 }
 
+// Body contains a secondary measurements for a person
 type Body struct {
 	Valid     bool
 	Timestamp int
@@ -53,24 +59,28 @@ type Body struct {
 	Muscle    float32
 	Bone      float32
 }
+
+// PartialMetric contains either type of measurement sent by the scale
 type PartialMetric struct {
 	Person Person
 	Weight Weight
 	Body   Body
 }
 
+// Plugin interface describes what a plugin should implement
 type Plugin interface {
 	Initialize(c interface{}) Plugin
 	ParseData(person *PersonMetrics) bool
 }
 
+// Config is read from the toml file
 type Config struct {
 	Device       string
 	ScanDuration duration
 	DeviceID     string
 	Sub          duration
 	CsvDir       string
-	Time_offset  int
+	TimeOffset  int
 	Fakeit       bool
 	Plugins      interface{}
 }

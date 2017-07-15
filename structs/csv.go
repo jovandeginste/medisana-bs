@@ -9,6 +9,7 @@ import (
 	"strconv"
 )
 
+// ImportCsv load a csv file for a PersonID
 func ImportCsv(person int) (result BodyMetrics) {
 	csvFile := "csv/" + strconv.Itoa(person) + ".csv"
 	if _, err := os.Stat(csvFile); os.IsNotExist(err) {
@@ -22,7 +23,7 @@ func ImportCsv(person int) (result BodyMetrics) {
 	r := csv.NewReader(bufio.NewReader(f))
 	for {
 		var w BodyMetric
-		err := Unmarshal(r, &w)
+		err := unmarshal(r, &w)
 		if err == io.EOF {
 			break
 		}
@@ -34,7 +35,7 @@ func ImportCsv(person int) (result BodyMetrics) {
 	return
 }
 
-func Unmarshal(reader *csv.Reader, v interface{}) error {
+func unmarshal(reader *csv.Reader, v interface{}) error {
 	record, err := reader.Read()
 	if err != nil {
 		return err
@@ -67,6 +68,7 @@ func Unmarshal(reader *csv.Reader, v interface{}) error {
 	return nil
 }
 
+// FieldMismatch happens when the csv does not match our expectations
 type FieldMismatch struct {
 	expected, found int
 }
@@ -75,6 +77,7 @@ func (e *FieldMismatch) Error() string {
 	return "CSV line fields mismatch. Expected " + strconv.Itoa(e.expected) + " found " + strconv.Itoa(e.found)
 }
 
+// UnsupportedType happens when a type is not supported
 type UnsupportedType struct {
 	Type string
 }
