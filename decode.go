@@ -101,21 +101,19 @@ func sanitizeTimestamp(timestamp int) int {
 }
 
 func decodeData(req []byte) {
-	go func() {
-		result := new(structs.PartialMetric)
-		switch req[0] {
-		case 0x84:
-			person := decodePerson(req)
-			result.Person = person
-		case 0x1D:
-			weight := decodeWeight(req)
-			result.Weight = weight
-		case 0x6F:
-			body := decodeBody(req)
-			result.Body = body
-		default:
-			log.Printf("[DECODE] Unhandled data encountered: [% X]\n", req)
-		}
-		metricChan <- result
-	}()
+	result := new(structs.PartialMetric)
+	switch req[0] {
+	case 0x84:
+		person := decodePerson(req)
+		result.Person = person
+	case 0x1D:
+		weight := decodeWeight(req)
+		result.Weight = weight
+	case 0x6F:
+		body := decodeBody(req)
+		result.Body = body
+	default:
+		log.Printf("[DECODE] Unhandled data encountered: [% X]\n", req)
+	}
+	metricChan <- result
 }

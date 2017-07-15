@@ -74,7 +74,7 @@ func explore(cln ble.Client, p *ble.Profile) error {
 		for _, c := range s.Characteristics {
 			switch convertUUIDToString(c.UUID) {
 			case "8a21", "8a22", "8a82":
-				h := func(req []byte) { decodeData(req) }
+				h := func(req []byte) { go decodeData(req) }
 
 				if err := cln.Subscribe(c, true, h); err != nil {
 					log.Printf("[BLUETOOTH] subscribe failed: %s\n", err)
