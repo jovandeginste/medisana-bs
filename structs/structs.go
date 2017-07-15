@@ -69,7 +69,7 @@ type PartialMetric struct {
 
 // Plugin interface describes what a plugin should implement
 type Plugin interface {
-	Initialize(c interface{}) Plugin
+	Initialize(c Config) Plugin
 	ParseData(person *PersonMetrics) bool
 }
 
@@ -82,7 +82,24 @@ type Config struct {
 	CsvDir       string
 	TimeOffset  int
 	Fakeit       bool
-	Plugins      interface{}
+	Plugins      map[string]PluginConfig
+}
+
+type PluginConfig struct {
+	Server        string
+	SenderName    string
+	SenderAddress string
+	TemplateFile  string
+	Subject       string
+	Metrics       int
+	Dir           string
+	StartTLS      bool
+	Recipients    map[string]MailRecipient
+}
+
+type MailRecipient struct {
+	Name    string
+	Address []string
 }
 
 type duration struct {

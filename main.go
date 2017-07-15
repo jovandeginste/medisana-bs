@@ -14,7 +14,7 @@ func main() {
 
 	config = ReadConfig("config.toml")
 
-	plugins.Initialize(config.Plugins)
+	plugins.Initialize(config)
 	metricChan = make(chan *structs.PartialMetric, 2)
 	go func() {
 		MetricParser()
