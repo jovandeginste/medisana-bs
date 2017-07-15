@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// StartBluetooth runs the bluetooth cycle forever, scanning for some time and processing results
 func StartBluetooth() {
 	d, err := dev.NewDevice(config.Device)
 	if err != nil {
@@ -39,21 +40,22 @@ func StartBluetooth() {
 				case <-cln.Disconnected():
 					log.Printf("[BLUETOOTH] [ %s ] is disconnected \n", cln.Address())
 				case <-time.After(config.Sub.AsTimeDuration()):
-					fmt.Println("[BLUETOOTH] [ %s ] timed out\n", cln.Address())
+					log.Printf("[BLUETOOTH] [ %s ] timed out\n", cln.Address())
 				}
 			}()
 
-			log.Printf("[BLUETOOTH] [ %s ] is connected ... Name: '%s'\n", cln.Address(), cln.Name())
+			log.Printf("[BLUETOOTH] [ %s ] is connected ...\n", cln.Address())
 			log.Println("[BLUETOOTH] Discovering profile...")
 			p, err := cln.DiscoverProfile(true)
 			if err != nil {
 				log.Printf("[BLUETOOTH] can't discover profile: %s", err)
 			} else {
+				log.Printf("[BLUETOOTH] Name: '%s'\n", cln.Name())
 
 				// Start the exploration.
 				explore(cln, p)
 
-				log.Printf("[BLUETOOTH] Discovery done, waiting %d seconds before disconnecting.\n", config.Sub.AsTimeDuration())
+				log.Printf("[BLUETOOTH] Discovery done, waiting %d seconds before disconnecting.\n", (config.Sub.AsTimeDuration() / 1000000000))
 				time.Sleep(config.Sub.AsTimeDuration())
 
 				// Disconnect the connection. (On OS X, this might take a while.)
@@ -70,7 +72,8 @@ func explore(cln ble.Client, p *ble.Profile) error {
 
 	for _, s := range p.Services {
 		for _, c := range s.Characteristics {
-			switch fmt.Sprintf("%s", c.UUID) {
+			log.Printf("[BLUETOOTH] Found characteristic '%s'\n", convertUUIDToString(c.UUID))
+			switch convertUUIDToString(c.UUID) {
 			case "8a21", "8a22", "8a82":
 				h := func(req []byte) { decodeData(req) }
 
@@ -84,7 +87,7 @@ func explore(cln ble.Client, p *ble.Profile) error {
 	// Then we send the current time (which triggers data transmission)
 	for _, s := range p.Services {
 		for _, c := range s.Characteristics {
-			switch fmt.Sprintf("%s", c.UUID) {
+			switch convertUUIDToString(c.UUID) {
 			case "8a81":
 				log.Printf("[BLUETOOTH] Sending the time... ")
 				thetime := time.Now().Unix()
@@ -107,4 +110,9 @@ func generateTime(therealtime int64) []byte {
 	bs = append([]byte{2}, bs...)
 
 	return bs
+}
+
+func convertUUIDToString(u ble.UUID) string {
+	str := fmt.Sprintf("%s", u)
+	return str
 }

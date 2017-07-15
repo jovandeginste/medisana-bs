@@ -14,16 +14,17 @@ var pluginRegistry = map[string]reflect.Type{
 	"csv":  reflect.TypeOf(Csv{}),
 }
 
+// Initialize all plugins from configuration
 func Initialize(configuration interface{}) {
 	ap := configuration.(map[string]interface{})
 	allPlugins = make(map[string]structs.Plugin)
 
 	log.Println("[PLUGIN] Initializing plugins")
-	for name, plugin_config := range ap {
+	for name, pluginConfig := range ap {
 		log.Printf("[PLUGIN]  --> %s\n", name)
-		plugin_type := pluginRegistry[name]
-		plugin_builder := reflect.New(plugin_type).Elem().Interface().(structs.Plugin)
-		allPlugins[name] = plugin_builder.Initialize(plugin_config)
+		pluginType := pluginRegistry[name]
+		pluginBuilder := reflect.New(pluginType).Elem().Interface().(structs.Plugin)
+		allPlugins[name] = pluginBuilder.Initialize(pluginConfig)
 		if allPlugins[name] != nil {
 			log.Println("[PLUGIN]  *-> success")
 		} else {
@@ -34,6 +35,7 @@ func Initialize(configuration interface{}) {
 	log.Println("[PLUGIN] All plugins initialized.")
 }
 
+// ParseData will parse new data for a given person and send it to every configured plugin
 func ParseData(person *structs.PersonMetrics) {
 	log.Println("[PLUGIN] Sending data to all plugins")
 	for name, plugin := range allPlugins {

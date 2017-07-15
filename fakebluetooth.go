@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+/*
+FakeBluetooth fakes receiving data, triggering the plugins
+
+It will pretend to receive data from a scale, which
+should trigger all the (configured) plugins.
+
+You can use this to test configurations and/or new plugins
+*/
 func FakeBluetooth() {
 	log.Println("[FAKEBLUETOOTH] Sending fake data from 'testdata' to the indicator parser... (waiting 5 seconds)")
 	f, err := os.Open("testdata")
@@ -16,7 +24,7 @@ func FakeBluetooth() {
 		os.Exit(1)
 	}
 	r := bufio.NewReader(f)
-	s, e := Readln(r)
+	s, e := readln(r)
 	time.Sleep(5 * time.Second)
 	for e == nil {
 		log.Println("[FAKEBLUETOOTH] Sending data: ", s)
@@ -27,17 +35,17 @@ func FakeBluetooth() {
 		}
 		decodeData(h)
 		time.Sleep(200 * time.Millisecond)
-		s, e = Readln(r)
+		s, e = readln(r)
 	}
 	time.Sleep(1 * time.Second)
 	log.Println("[FAKEBLUETOOTH] Finished sending fake data from 'testdata' to the indicator parser. Waiting in an infinite loop now.")
 	select {}
 }
 
-func Readln(r *bufio.Reader) (string, error) {
+func readln(r *bufio.Reader) (string, error) {
 	var (
-		isPrefix bool  = true
-		err      error = nil
+		isPrefix = true
+		err      error
 		line, ln []byte
 	)
 	for isPrefix && err == nil {

@@ -7,8 +7,7 @@ import (
 	"os"
 )
 
-const MaxInt = 2147483647
-
+// ReadConfig reads the file and converts it to a struct
 func ReadConfig(configfile string) structs.Config {
 	_, err := os.Stat(configfile)
 	if err != nil {

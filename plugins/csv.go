@@ -10,10 +10,12 @@ import (
 	"strconv"
 )
 
+// Csv contains configuration for the Csv plugin
 type Csv struct {
 	Dir string
 }
 
+// Initialize the Csv plugin
 func (plugin Csv) Initialize(c interface{}) structs.Plugin {
 	newc := c.(map[string]interface{})
 	plugin.Dir = newc["Dir"].(string)
@@ -21,9 +23,11 @@ func (plugin Csv) Initialize(c interface{}) structs.Plugin {
 	log.Printf("[PLUGIN CSV]   - Dir: %s\n", plugin.Dir)
 	return plugin
 }
+
+// ParseData will parse new data for a given person
 func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
 	log.Println("[PLUGIN CSV] The csv plugin is parsing new data")
-	personId := person.Person
+	personID := person.Person
 	metrics := make(structs.BodyMetrics, len(person.BodyMetrics))
 	idx := 0
 	for _, value := range person.BodyMetrics {
@@ -32,9 +36,9 @@ func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
 	}
 	sort.Sort(metrics)
 
-	csvFile := plugin.Dir + "/" + strconv.Itoa(personId) + ".csv"
+	csvFile := plugin.Dir + "/" + strconv.Itoa(personID) + ".csv"
 	log.Printf("[PLUGIN CSV] Writing to file '%s'.\n", csvFile)
-	CreateCsvDir(csvFile)
+	createCsvDir(csvFile)
 
 	f, err := os.Create(csvFile)
 	if err != nil {
@@ -50,7 +54,7 @@ func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
 	return true
 }
 
-func CreateCsvDir(file string) {
+func createCsvDir(file string) {
 	path := filepath.Dir(file)
 	mode := os.FileMode(0700)
 

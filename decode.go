@@ -2,34 +2,10 @@ package main
 
 import (
 	"encoding/binary"
-	"encoding/hex"
 	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
+	"math"
 )
-
-func test() {
-	/*
-		From CSV:
-		1499291857,80.2,19.1,45.0,4.8,59.8,1788,25.3
-
-		Results here:
-		{Valid:true Person:2 Gender:male Age:33 Size:178 Activity:normal}
-		{Valid:true Weight:80.2 Timestamp:1499291857 Person:2}
-		{Valid:true Timestamp:1499291857 Person:2 Kcal:1788 Fat:19.1 Tbw:59.8 Muscle:45 Bone:4.8}
-	*/
-
-	person_data, _ := hex.DecodeString("845302800121B2E0000000000000000000000000")
-	weight_data, _ := hex.DecodeString("1d541f00fed125200e00000000020900000000")
-	body_data, _ := hex.DecodeString("6fd125200e02fc06bff056f2c2f130f0000000")
-
-	person := decodePerson(person_data)
-	weight := decodeWeight(weight_data)
-	body := decodeBody(body_data)
-
-	log.Printf("[DECODE] %+v\n", person)
-	log.Printf("[DECODE] %+v\n", weight)
-	log.Printf("[DECODE] %+v\n", body)
-}
 
 func decodePerson(data []byte) (person structs.Person) {
 	/*
@@ -66,7 +42,7 @@ func decodeWeight(data []byte) (weight structs.Weight) {
 	*/
 	weight.Valid = (data[0] == 0x1d)
 	weight.Weight = float32(decode16(data, 1)) / 100.0
-	weight.Timestamp = sanitize_timestamp(decode32(data, 5))
+	weight.Timestamp = sanitizeTimestamp(decode32(data, 5))
 	weight.Person = decode8(data, 13)
 	return
 }
@@ -83,7 +59,7 @@ func decodeBody(data []byte) (body structs.Body) {
 		bone: byte 14 & 15                 first nibble = 0xf, [bone*10]
 	*/
 	body.Valid = (data[0] == 0x6f)
-	body.Timestamp = sanitize_timestamp(decode32(data, 1))
+	body.Timestamp = sanitizeTimestamp(decode32(data, 1))
 	body.Person = decode8(data, 5)
 	body.Kcal = decode16(data, 6)
 	body.Fat = smallValue(decode16(data, 8))
@@ -97,27 +73,27 @@ func smallValue(value int) float32 {
 	return float32(0x0fff&value) / 10.0
 }
 func decode8(data []byte, firstByte int) int {
-	my_uint := data[firstByte]
-	return int(my_uint)
+	myUint := data[firstByte]
+	return int(myUint)
 }
 func decode16(data []byte, firstByte int) int {
-	my_uint := binary.LittleEndian.Uint16(data[firstByte:(firstByte + 2)])
-	return int(my_uint)
+	myUint := binary.LittleEndian.Uint16(data[firstByte:(firstByte + 2)])
+	return int(myUint)
 }
 func decode32(data []byte, firstByte int) int {
-	my_uint := binary.LittleEndian.Uint32(data[firstByte:(firstByte + 4)])
-	return int(my_uint)
+	myUint := binary.LittleEndian.Uint32(data[firstByte:(firstByte + 4)])
+	return int(myUint)
 }
 
-func sanitize_timestamp(timestamp int) int {
+func sanitizeTimestamp(timestamp int) int {
 	retTS := 0
-	if timestamp+config.Time_offset < MaxInt {
+	if timestamp+config.Time_offset < math.MaxInt32 {
 		retTS = timestamp + config.Time_offset
 	} else {
 		retTS = timestamp
 	}
 
-	if timestamp >= MaxInt {
+	if timestamp >= math.MaxInt32 {
 		retTS = 0
 	}
 
@@ -140,6 +116,6 @@ func decodeData(req []byte) {
 		default:
 			log.Printf("[DECODE] Unhandled data encountered: [% X]\n", req)
 		}
-		metric_chan <- result
+		metricChan <- result
 	}()
 }

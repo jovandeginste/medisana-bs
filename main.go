@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-var metric_chan chan *structs.PartialMetric
+var metricChan chan *structs.PartialMetric
 var config structs.Config
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 	config = ReadConfig("config.toml")
 
 	plugins.Initialize(config.Plugins)
-	metric_chan = make(chan *structs.PartialMetric, 2)
+	metricChan = make(chan *structs.PartialMetric, 2)
 	go func() {
 		MetricParser()
 	}()

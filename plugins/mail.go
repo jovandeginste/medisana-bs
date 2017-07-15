@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// Mail contains configuration for the Mail plugin
 type Mail struct {
 	Server        string
 	SenderName    string
@@ -23,11 +24,14 @@ type Mail struct {
 	Subject       string
 	Metrics       int
 }
+
+// MailRecipient contains a person name, and a list of addresses to send updates to
 type MailRecipient struct {
 	Name    string
 	Address []string
 }
 
+// Initialize the Mail plugin
 func (plugin Mail) Initialize(c interface{}) structs.Plugin {
 	newc := c.(map[string]interface{})
 	plugin.Server = newc["Server"].(string)
@@ -44,19 +48,19 @@ func (plugin Mail) Initialize(c interface{}) structs.Plugin {
 	plugin.Recipients = make(map[int]MailRecipient)
 
 	recipients := newc["Recipients"].(map[string]interface{})
-	for number, rec_config := range recipients {
+	for number, recConfig := range recipients {
 		id, err := strconv.Atoi(number)
 		if err != nil {
 			log.Printf("[PLUGIN MAIL] Configuration for non-numerical recipient id '%v'", id)
 		} else {
-			conv_rec_config := rec_config.(map[string]interface{})
-			unconv_address := conv_rec_config["Address"].([]interface{})
-			address := make([]string, len(unconv_address))
-			for i := range unconv_address {
-				address[i] = unconv_address[i].(string)
+			convRecConfig := recConfig.(map[string]interface{})
+			unconvAddress := convRecConfig["Address"].([]interface{})
+			address := make([]string, len(unconvAddress))
+			for i := range unconvAddress {
+				address[i] = unconvAddress[i].(string)
 			}
 			plugin.Recipients[id] = MailRecipient{
-				Name:    conv_rec_config["Name"].(string),
+				Name:    convRecConfig["Name"].(string),
 				Address: address,
 			}
 		}
@@ -73,14 +77,17 @@ func (plugin Mail) Initialize(c interface{}) structs.Plugin {
 	log.Printf("[PLUGIN MAIL]   - Recipients: %d\n", len(plugin.Recipients))
 	return plugin
 }
+
+// ParseData will parse new data for a given person
 func (plugin Mail) ParseData(person *structs.PersonMetrics) bool {
 	log.Println("[PLUGIN MAIL] The mail plugin is parsing new data")
 	plugin.sendMail(person)
 	return true
 }
+
 func (mail Mail) sendMail(person *structs.PersonMetrics) {
-	personId := person.Person
-	recipient := mail.Recipients[personId]
+	personID := person.Person
+	recipient := mail.Recipients[personID]
 	subject := mail.Subject
 
 	metrics := make(structs.BodyMetrics, len(person.BodyMetrics))
@@ -100,7 +107,6 @@ func (mail Mail) sendMail(person *structs.PersonMetrics) {
 	to := recipient.Address
 
 	var auth smtp.Auth
-	auth = nil
 
 	var msg string
 	msg = msg + fmt.Sprintf("From: %s\n", from)
@@ -111,14 +117,14 @@ func (mail Mail) sendMail(person *structs.PersonMetrics) {
 	msg = msg + "\n"
 	parameters := struct {
 		Name     string
-		PersonId int
+		PersonID int
 		Metrics  map[time.Time]structs.BodyMetric
 	}{
 		Name:     recipient.Name,
-		PersonId: personId,
+		PersonID: personID,
 		Metrics:  lastMetrics,
 	}
-	body, err := ParseTemplate(mail.TemplateFile, parameters)
+	body, err := parseTemplate(mail.TemplateFile, parameters)
 	if err != nil {
 		log.Printf("[PLUGIN MAIL] An error occurred: %+v\n", err)
 		return
@@ -130,7 +136,7 @@ func (mail Mail) sendMail(person *structs.PersonMetrics) {
 	log.Printf("[PLUGIN MAIL] Message was %d bytes.\n", len(msg))
 }
 
-func ParseTemplate(templateFileName string, data interface{}) (string, error) {
+func parseTemplate(templateFileName string, data interface{}) (string, error) {
 	var result string
 	t, err := template.ParseFiles(templateFileName)
 

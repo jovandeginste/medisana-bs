@@ -10,46 +10,47 @@ import (
 
 var allPersons = make([]*structs.PersonMetrics, 8)
 
+// MetricParser will initialize the Persons from csv and parse incoming metrics
 func MetricParser() {
 	for i := range allPersons {
 		allPersons[i] = &structs.PersonMetrics{Person: i + 1, BodyMetrics: make(map[int]structs.BodyMetric)}
 		allPersons[i].ImportBodyMetrics(structs.ImportCsv(i + 1))
 	}
-	sync_chan := make(chan bool)
-	Debounce(3*time.Second, sync_chan)
+	syncChan := make(chan bool)
+	debounce(3*time.Second, syncChan)
 	for {
-		partial_metric := <-metric_chan
-		UpdatePerson(partial_metric.Person)
-		UpdateBody(partial_metric.Body)
-		UpdateWeight(partial_metric.Weight)
-		sync_chan <- true
+		partialMetric := <-metricChan
+		updatePerson(partialMetric.Person)
+		updateBody(partialMetric.Body)
+		updateWeight(partialMetric.Weight)
+		syncChan <- true
 	}
 }
 
-func GetPersonMetrics(personId int) *structs.PersonMetrics {
-	person := allPersons[personId-1]
+func getPersonMetrics(personID int) *structs.PersonMetrics {
+	person := allPersons[personID-1]
 	return person
 }
 
-func UpdatePerson(update structs.Person) {
+func updatePerson(update structs.Person) {
 	if !update.Valid {
 		return
 	}
 	log.Printf("[METRIC PARSER] Received person metrics: %+v", update)
-	person := GetPersonMetrics(update.Person)
+	person := getPersonMetrics(update.Person)
 	person.Gender = update.Gender
 	person.Age = update.Age
 	person.Size = update.Size
 	person.Activity = update.Activity
-	PrintPerson(person)
+	printPerson(person)
 }
 
-func UpdateBody(update structs.Body) {
+func updateBody(update structs.Body) {
 	if !update.Valid {
 		return
 	}
 	log.Printf("[METRIC PARSER] Received body metrics: %+v", update)
-	person := GetPersonMetrics(update.Person)
+	person := getPersonMetrics(update.Person)
 	person.Updated = true
 	_, ok := person.BodyMetrics[update.Timestamp]
 	if !ok {
@@ -64,14 +65,14 @@ func UpdateBody(update structs.Body) {
 	bodyMetric.Muscle = update.Muscle
 	bodyMetric.Bone = update.Bone
 	person.BodyMetrics[update.Timestamp] = bodyMetric
-	PrintPerson(person)
+	printPerson(person)
 }
-func UpdateWeight(update structs.Weight) {
+func updateWeight(update structs.Weight) {
 	if !update.Valid {
 		return
 	}
 	log.Printf("[METRIC PARSER] Received weight metrics: %+v", update)
-	person := GetPersonMetrics(update.Person)
+	person := getPersonMetrics(update.Person)
 	person.Updated = true
 	_, ok := person.BodyMetrics[update.Timestamp]
 	if !ok {
@@ -86,13 +87,13 @@ func UpdateWeight(update structs.Weight) {
 	}
 
 	person.BodyMetrics[update.Timestamp] = bodyMetric
-	PrintPerson(person)
+	printPerson(person)
 }
-func PrintPerson(person *structs.PersonMetrics) {
+func printPerson(person *structs.PersonMetrics) {
 	log.Printf("[METRIC PARSER] Person %d now has %d metrics.\n", person.Person, len(person.BodyMetrics))
 }
 
-func Debounce(lull time.Duration, in chan bool) {
+func debounce(lull time.Duration, in chan bool) {
 	go func() {
 		for {
 			select {

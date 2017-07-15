@@ -1,7 +1,7 @@
 device = "default"
-scanDuration = "20s" # Should be around half the time your scale sends the data
+scanDuration = "30s" # Should be around half the time your scale sends the data
 deviceID = "AA:BB:CC:DD:EE:FF" # MAC address of your scale
-sub = "30s"
+sub = "15s"
 csvDir = "./csv"
 # time_offset = 1262304000 # seconds for BS410
 time_offset = 0 # seconds for most BS devices
