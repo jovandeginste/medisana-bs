@@ -56,10 +56,10 @@ func (plugin Mail) ParseData(person *structs.PersonMetrics) bool {
 	return true
 }
 
-func (mail Mail) sendMail(person *structs.PersonMetrics) {
+func (plugin Mail) sendMail(person *structs.PersonMetrics) {
 	personID := person.Person
-	recipient := mail.Recipients[strconv.Itoa(personID)]
-	subject := mail.Subject
+	recipient := plugin.Recipients[strconv.Itoa(personID)]
+	subject := plugin.Subject
 
 	metrics := make(structs.BodyMetrics, len(person.BodyMetrics))
 	idx := 0
@@ -69,12 +69,12 @@ func (mail Mail) sendMail(person *structs.PersonMetrics) {
 	}
 	sort.Sort(metrics)
 	lastMetrics := make(map[time.Time]structs.BodyMetric)
-	for _, value := range metrics[len(metrics)-mail.Metrics:] {
+	for _, value := range metrics[len(metrics)-plugin.Metrics:] {
 		thetime := time.Unix(int64(value.Timestamp), 0)
 		lastMetrics[thetime] = value
 	}
 
-	from := fmt.Sprintf("\"%s\" <%s>", mail.SenderName, mail.SenderAddress)
+	from := fmt.Sprintf("\"%s\" <%s>", plugin.SenderName, plugin.SenderAddress)
 	to := recipient.Address
 
 	var auth smtp.Auth
@@ -95,7 +95,7 @@ func (mail Mail) sendMail(person *structs.PersonMetrics) {
 		PersonID: personID,
 		Metrics:  lastMetrics,
 	}
-	body, err := parseTemplate(mail.TemplateFile, parameters)
+	body, err := parseTemplate(plugin.TemplateFile, parameters)
 	if err != nil {
 		log.Printf("[PLUGIN MAIL] An error occurred: %+v\n", err)
 		return
@@ -103,7 +103,7 @@ func (mail Mail) sendMail(person *structs.PersonMetrics) {
 	msg = msg + body
 
 	log.Printf("[PLUGIN MAIL] Sending mail from %s to %s...\n", from, to)
-	smtp.SendMail(mail.Server, auth, mail.SenderAddress, to, []byte(msg))
+	smtp.SendMail(plugin.Server, auth, plugin.SenderAddress, to, []byte(msg))
 	log.Printf("[PLUGIN MAIL] Message was %d bytes.\n", len(msg))
 }
 
