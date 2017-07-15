@@ -73,7 +73,7 @@ type Plugin interface {
 	ParseData(person *PersonMetrics) bool
 }
 
-// Config is read from the toml file
+// Configuration for the application
 type Config struct {
 	Device       string
 	ScanDuration duration
@@ -85,6 +85,7 @@ type Config struct {
 	Plugins      map[string]PluginConfig
 }
 
+// PluginConfig contains any possible Plugin configuration
 type PluginConfig struct {
 	Server        string
 	SenderName    string
@@ -97,6 +98,7 @@ type PluginConfig struct {
 	Recipients    map[string]MailRecipient
 }
 
+// MailRecipient contains a person's name and a list of mail addresses to get updates
 type MailRecipient struct {
 	Name    string
 	Address []string
