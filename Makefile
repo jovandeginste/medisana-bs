@@ -4,7 +4,7 @@ all: arm6 arm7 linux32 linux64
 
 pi: arm6
 	rsync -vaiz build/medisana-bs.arm6 root@scale-pi:/opt/medisana-bs/
-	ssh -t root@scale-pi 'cd /opt/medisana-bs/ && ./medisana-bs.arm6'
+	ssh -t root@scale-pi systemctl restart medisana-bs
 
 build:
 	$(BUILDOPTS) go build -o build/$(bin).$(EXT)
