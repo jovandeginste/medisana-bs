@@ -17,7 +17,7 @@ func MetricParser() {
 		allPersons[i].ImportBodyMetrics(structs.ImportCsv(i + 1))
 	}
 	syncChan := make(chan bool)
-	debounce(3*time.Second, syncChan)
+	go debounce(3*time.Second, syncChan)
 	for {
 		partialMetric := <-metricChan
 		updatePerson(partialMetric.Person)
@@ -28,8 +28,7 @@ func MetricParser() {
 }
 
 func getPersonMetrics(personID int) *structs.PersonMetrics {
-	person := allPersons[personID-1]
-	return person
+	return allPersons[personID-1]
 }
 
 func updatePerson(update structs.Person) {
@@ -52,8 +51,7 @@ func updateBody(update structs.Body) {
 	log.Printf("[METRIC PARSER] Received body metrics: %+v", update)
 	person := getPersonMetrics(update.Person)
 	person.Updated = true
-	_, ok := person.BodyMetrics[update.Timestamp]
-	if !ok {
+	if _, ok := person.BodyMetrics[update.Timestamp]; !ok {
 		log.Printf("[METRIC PARSER] No body metric - creating")
 		person.BodyMetrics[update.Timestamp] = structs.BodyMetric{}
 	}
@@ -74,8 +72,7 @@ func updateWeight(update structs.Weight) {
 	log.Printf("[METRIC PARSER] Received weight metrics: %+v", update)
 	person := getPersonMetrics(update.Person)
 	person.Updated = true
-	_, ok := person.BodyMetrics[update.Timestamp]
-	if !ok {
+	if _, ok := person.BodyMetrics[update.Timestamp]; !ok {
 		log.Printf("[METRIC PARSER] No body metric - creating")
 		person.BodyMetrics[update.Timestamp] = structs.BodyMetric{}
 	}
@@ -94,19 +91,17 @@ func printPerson(person *structs.PersonMetrics) {
 }
 
 func debounce(lull time.Duration, in chan bool) {
-	go func() {
-		for {
-			select {
-			case <-in:
-			case <-time.Tick(lull):
-				for _, person := range allPersons {
-					if person.Updated {
-						log.Printf("[METRIC PARSER] Person %d was updated -- calling all plugins.\n", person.Person)
-						plugins.ParseData(person)
-						person.Updated = false
-					}
+	for {
+		select {
+		case <-in:
+		case <-time.Tick(lull):
+			for _, person := range allPersons {
+				if person.Updated {
+					log.Printf("[METRIC PARSER] Person %d was updated -- calling all plugins.\n", person.Person)
+					plugins.ParseData(person)
+					person.Updated = false
 				}
 			}
 		}
-	}()
+	}
 }

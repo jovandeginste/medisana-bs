@@ -33,7 +33,7 @@ func FakeBluetooth() {
 			log.Printf("[FAKEBLUETOOTH] error decoding line: %+v\n", err)
 			os.Exit(1)
 		}
-		decodeData(h)
+		go decodeData(h)
 		time.Sleep(200 * time.Millisecond)
 		s, e = readln(r)
 	}

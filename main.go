@@ -16,9 +16,7 @@ func main() {
 
 	plugins.Initialize(config)
 	metricChan = make(chan *structs.PartialMetric, 2)
-	go func() {
-		MetricParser()
-	}()
+	go MetricParser()
 
 	log.Println("[MAIN] Starting Bluetooth Scale monitor")
 
