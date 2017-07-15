@@ -72,7 +72,6 @@ func explore(cln ble.Client, p *ble.Profile) error {
 
 	for _, s := range p.Services {
 		for _, c := range s.Characteristics {
-			log.Printf("[BLUETOOTH] Found characteristic '%s'\n", convertUUIDToString(c.UUID))
 			switch convertUUIDToString(c.UUID) {
 			case "8a21", "8a22", "8a82":
 				h := func(req []byte) { decodeData(req) }
