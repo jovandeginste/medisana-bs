@@ -73,7 +73,7 @@ type Plugin interface {
 	ParseData(person *PersonMetrics) bool
 }
 
-// Configuration for the application
+// Config contains the configuration for the application
 type Config struct {
 	Device       string
 	ScanDuration duration
