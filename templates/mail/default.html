@@ -14,14 +14,14 @@
 	</tr>
 	{{ range $key, $metric := .Metrics }}
 	<tr style="background-color: #fff;">
-		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ $key.Format "2/1 15:04" }}</td>
-		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ .Weight }}</td>
-		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ .Fat }}</td>
-		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ .Muscle }}</td>
-		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ .Bone }}</td>
-		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ .Tbw }}</td>
-		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ .Kcal }}</td>
-		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ .Bmi }}</td>
+		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ .Annotations.Time.Format "2/1 15:04" }}</td>
+		<td style="text-align: right; color: {{if le .Annotations.DeltaWeight 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Weight }}</td>
+		<td style="text-align: right; color: {{if le .Annotations.DeltaFat 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Fat }}</td>
+		<td style="text-align: right; color: {{if ge .Annotations.DeltaMuscle 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Muscle }}</td>
+		<td style="text-align: right; color: {{if ge .Annotations.DeltaBone 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Bone }}</td>
+		<td style="text-align: right; color: {{if le .Annotations.DeltaTbw 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Tbw }}</td>
+		<td style="text-align: right; color: {{if le .Annotations.DeltaKcal 0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Kcal }}</td>
+		<td style="text-align: right; color: {{if le .Annotations.DeltaBmi 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Bmi }}</td>
 	</tr>
 	{{ end }}
 </table>

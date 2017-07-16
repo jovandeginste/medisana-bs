@@ -68,10 +68,25 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) {
 		idx++
 	}
 	sort.Sort(metrics)
-	lastMetrics := make(map[time.Time]structs.BodyMetric)
+	lastMetrics := make(map[int]structs.AnnotatedBodyMetric)
+	previousMetric := metrics[len(metrics)-plugin.Metrics-1]
 	for _, value := range metrics[len(metrics)-plugin.Metrics:] {
-		thetime := time.Unix(int64(value.Timestamp), 0)
-		lastMetrics[thetime] = value
+		annotations := structs.BodyMetricAnnotations{
+			Time:        time.Unix(int64(value.Timestamp), 0),
+			DeltaWeight: value.Weight - previousMetric.Weight,
+			DeltaFat:    value.Fat - previousMetric.Fat,
+			DeltaMuscle: value.Muscle - previousMetric.Muscle,
+			DeltaBone:   value.Bone - previousMetric.Bone,
+			DeltaTbw:    value.Tbw - previousMetric.Tbw,
+			DeltaKcal:   value.Kcal - previousMetric.Kcal,
+			DeltaBmi:    value.Bmi - previousMetric.Bmi,
+		}
+		lastMetrics[value.Timestamp] = structs.AnnotatedBodyMetric{
+			Annotations: annotations,
+			BodyMetric:  value,
+		}
+
+		previousMetric = value
 	}
 
 	from := fmt.Sprintf("\"%s\" <%s>", plugin.SenderName, plugin.SenderAddress)
@@ -89,7 +104,7 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) {
 	parameters := struct {
 		Name     string
 		PersonID int
-		Metrics  map[time.Time]structs.BodyMetric
+		Metrics  map[int]structs.AnnotatedBodyMetric
 	}{
 		Name:     recipient.Name,
 		PersonID: personID,

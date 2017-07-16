@@ -15,6 +15,9 @@ type PersonMetrics struct {
 	BodyMetrics map[int]BodyMetric
 }
 
+// BodyMetrics is shorthand for a list of BodyMetrics
+type BodyMetrics []BodyMetric
+
 // BodyMetric is a single tuple of measurements for a given person
 type BodyMetric struct {
 	Timestamp int
@@ -27,8 +30,23 @@ type BodyMetric struct {
 	Bmi       float32
 }
 
-// BodyMetrics is shorthand for a list of BodyMetrics
-type BodyMetrics []BodyMetric
+// AnnotatedBodyMetric contains the values of BodyMetric plus some custom annotations plugins to show
+type AnnotatedBodyMetric struct {
+	BodyMetric  BodyMetric
+	Annotations BodyMetricAnnotations
+}
+
+// BodyMetricAnnotations contains annotations to a given BodyMetric
+type BodyMetricAnnotations struct {
+	Time        time.Time
+	DeltaWeight float32
+	DeltaFat    float32
+	DeltaMuscle float32
+	DeltaBone   float32
+	DeltaTbw    float32
+	DeltaKcal   int
+	DeltaBmi    float32
+}
 
 // Person contains some fairly static data about a person
 type Person struct {
