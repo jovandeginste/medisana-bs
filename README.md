@@ -24,7 +24,7 @@ on the Pi!)
 
 # Compilation
 
-Copy `config.go.example` to `config.go` and change the parameters.
+Copy `config.example.toml` to `config.toml` and change the parameters.
 
 All dependencies are vendored in, so you should be able to just `go build` for
 your local platform. The `Makefile` supports these platforms:
