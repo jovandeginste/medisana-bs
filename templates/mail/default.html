@@ -19,7 +19,7 @@
 		<td style="text-align: right; color: {{if le .Annotations.DeltaFat 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Fat }}</td>
 		<td style="text-align: right; color: {{if ge .Annotations.DeltaMuscle 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Muscle }}</td>
 		<td style="text-align: right; color: {{if ge .Annotations.DeltaBone 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Bone }}</td>
-		<td style="text-align: right; color: {{if le .Annotations.DeltaTbw 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Tbw }}</td>
+		<td style="text-align: right; color: {{if ge .Annotations.DeltaTbw 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Tbw }}</td>
 		<td style="text-align: right; color: {{if le .Annotations.DeltaKcal 0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Kcal }}</td>
 		<td style="text-align: right; color: {{if le .Annotations.DeltaBmi 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Bmi }}</td>
 	</tr>
