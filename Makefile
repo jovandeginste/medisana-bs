@@ -7,7 +7,7 @@ pi: arm6
 	ssh -t root@scale-pi systemctl restart medisana-bs
 
 build:
-	$(BUILDOPTS) go build -o build/$(bin).$(EXT)
+	$(BUILDOPTS) go build -mod vendor -o build/$(bin).$(EXT)
 
 arm6:
 	@$(MAKE) build BUILDOPTS="GOOS=linux GOARCH=arm GOARM=6" EXT=$(@)

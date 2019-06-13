@@ -1,0 +1,32 @@
+# github.com/BurntSushi/toml v0.0.0-20170626110600-a368813c5e64
+github.com/BurntSushi/toml
+# github.com/currantlabs/ble v0.0.0-20170630000959-54a939021a27
+github.com/currantlabs/ble
+github.com/currantlabs/ble/examples/lib/dev
+github.com/currantlabs/ble/darwin
+github.com/currantlabs/ble/linux
+github.com/currantlabs/ble/linux/att
+github.com/currantlabs/ble/linux/gatt
+github.com/currantlabs/ble/linux/hci
+github.com/currantlabs/ble/linux/adv
+github.com/currantlabs/ble/linux/hci/cmd
+github.com/currantlabs/ble/linux/hci/evt
+github.com/currantlabs/ble/linux/hci/socket
+# github.com/gocarina/gocsv v0.0.0-20170511160845-911e4d95f88f
+github.com/gocarina/gocsv
+# github.com/mattn/go-colorable v0.0.8
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.2
+github.com/mattn/go-isatty
+# github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
+github.com/mgutz/ansi
+# github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab
+github.com/mgutz/logxi/v1
+# github.com/pkg/errors v0.0.0-20170505043639-c605e284fe17
+github.com/pkg/errors
+# github.com/raff/goble v0.0.0-20170329193144-f6ecf99ef037
+github.com/raff/goble/xpc
+# golang.org/x/net v0.0.0-20170706005753-054b33e65271
+golang.org/x/net/context
+# golang.org/x/sys v0.0.0-20170707161408-739734461d1c
+golang.org/x/sys/unix
