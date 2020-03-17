@@ -13,11 +13,12 @@ type structInfo struct {
 	Fields []fieldInfo
 }
 
-// fieldInfo is a struct field that should be mapped to a CSV column, or vica-versa
+// fieldInfo is a struct field that should be mapped to a CSV column, or vice-versa
 // Each IndexChain element before the last is the index of an the embedded struct field
 // that defines Key as a tag
 type fieldInfo struct {
 	keys       []string
+	omitEmpty  bool
 	IndexChain []int
 }
 
@@ -27,7 +28,7 @@ func (f fieldInfo) getFirstKey() string {
 
 func (f fieldInfo) matchesKey(key string) bool {
 	for _, k := range f.keys {
-		if key == k {
+		if key == k || strings.TrimSpace(key) == k {
 			return true
 		}
 	}
@@ -57,12 +58,33 @@ func getFieldInfos(rType reflect.Type, parentIndexChain []int) []fieldInfo {
 		if field.PkgPath != "" {
 			continue
 		}
-		indexChain := append(parentIndexChain, i)
-		// if the field is an embedded struct, create a fieldInfo for each of its fields
-		if field.Anonymous && field.Type.Kind() == reflect.Struct {
-			fieldsList = append(fieldsList, getFieldInfos(field.Type, indexChain)...)
+
+		var cpy = make([]int, len(parentIndexChain))
+		copy(cpy, parentIndexChain)
+		indexChain := append(cpy, i)
+
+		// if the field is a pointer to a struct, follow the pointer then create fieldinfo for each field
+		if field.Type.Kind() == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct {
+			// unless it implements marshalText or marshalCSV. Structs that implement this
+			// should result in one value and not have their fields exposed
+			if !(canMarshal(field.Type.Elem())) {
+				fieldsList = append(fieldsList, getFieldInfos(field.Type.Elem(), indexChain)...)
+			}
+		}
+		// if the field is a struct, create a fieldInfo for each of its fields
+		if field.Type.Kind() == reflect.Struct {
+			// unless it implements marshalText or marshalCSV. Structs that implement this
+			// should result in one value and not have their fields exposed
+			if !(canMarshal(field.Type)) {
+				fieldsList = append(fieldsList, getFieldInfos(field.Type, indexChain)...)
+			}
+		}
+
+		// if the field is an embedded struct, ignore the csv tag
+		if field.Anonymous {
 			continue
 		}
+
 		fieldInfo := fieldInfo{IndexChain: indexChain}
 		fieldTag := field.Tag.Get("csv")
 		fieldTags := strings.Split(fieldTag, TagSeparator)
@@ -70,6 +92,8 @@ func getFieldInfos(rType reflect.Type, parentIndexChain []int) []fieldInfo {
 		for _, fieldTagEntry := range fieldTags {
 			if fieldTagEntry != "omitempty" {
 				filteredTags = append(filteredTags, fieldTagEntry)
+			} else {
+				fieldInfo.omitEmpty = true
 			}
 		}
 

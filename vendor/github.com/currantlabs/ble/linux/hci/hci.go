@@ -303,11 +303,13 @@ func (h *HCI) handlePkt(b []byte) error {
 }
 
 func (h *HCI) handleACL(b []byte) error {
+	handle := packet(b).handle()
 	h.muConns.Lock()
-	c, ok := h.conns[packet(b).handle()]
+	c, ok := h.conns[handle]
 	h.muConns.Unlock()
 	if !ok {
-		return fmt.Errorf("invalid connection handle")
+		logger.Warn("invalid connection handle on ACL packet", "handle", handle)
+		return nil
 	}
 	c.chInPkt <- b
 	return nil
@@ -328,6 +330,9 @@ func (h *HCI) handleEvt(b []byte) error {
 	}
 	if f := h.evth[code]; f != nil {
 		h.err = f(b[2:])
+		return nil
+	}
+	if code == 0xff { // Ignore vendor events
 		return nil
 	}
 	return fmt.Errorf("unsupported event packet: % X", b)
