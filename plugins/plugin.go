@@ -1,9 +1,10 @@
 package plugins
 
 import (
-	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 	"os"
+
+	"github.com/jovandeginste/medisana-bs/structs"
 )
 
 var allPlugins map[string]structs.Plugin

@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/jovandeginste/medisana-bs/plugins"
 	"github.com/jovandeginste/medisana-bs/structs"
-	"log"
 )
 
 var metricChan chan *structs.PartialMetric

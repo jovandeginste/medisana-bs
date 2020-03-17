@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/binary"
-	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 	"math"
+
+	"github.com/jovandeginste/medisana-bs/structs"
 )
 
 func decodePerson(data []byte) (person structs.Person) {

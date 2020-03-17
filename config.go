@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/BurntSushi/toml"
-	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 	"os"
+
+	"github.com/BurntSushi/toml"
+	"github.com/jovandeginste/medisana-bs/structs"
 )
 
 // ReadConfig reads the file and converts it to a struct

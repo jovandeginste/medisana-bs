@@ -1,13 +1,14 @@
 package plugins
 
 import (
-	"github.com/gocarina/gocsv"
-	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
+
+	"github.com/gocarina/gocsv"
+	"github.com/jovandeginste/medisana-bs/structs"
 )
 
 // Csv contains configuration for the Csv plugin

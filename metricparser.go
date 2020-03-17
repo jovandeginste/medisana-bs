@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/jovandeginste/medisana-bs/plugins"
-	"github.com/jovandeginste/medisana-bs/structs"
 	"log"
 	"math"
 	"time"
+
+	"github.com/jovandeginste/medisana-bs/plugins"
+	"github.com/jovandeginste/medisana-bs/structs"
 )
 
 var allPersons = make([]*structs.PersonMetrics, 8)

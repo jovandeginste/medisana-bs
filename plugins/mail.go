@@ -3,7 +3,6 @@ package plugins
 import (
 	"bytes"
 	"fmt"
-	"github.com/jovandeginste/medisana-bs/structs"
 	"html/template"
 	"log"
 	"net/smtp"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/jovandeginste/medisana-bs/structs"
 )
 
 // Mail contains configuration for the Mail plugin
@@ -96,7 +97,7 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) {
 
 	var msg string
 	msg = msg + fmt.Sprintf("From: %s\n", from)
-	msg = msg + fmt.Sprintf("To: %s\n", strings.Join(to, ";"))
+	msg = msg + fmt.Sprintf("To: %s\n", strings.Join(to, ","))
 	msg = msg + fmt.Sprintf("Subject: %s\n", subject)
 	msg = msg + "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n"
 

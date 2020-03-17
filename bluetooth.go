@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/currantlabs/ble"
-	"github.com/currantlabs/ble/examples/lib/dev"
-	"golang.org/x/net/context"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/currantlabs/ble"
+	"github.com/currantlabs/ble/examples/lib/dev"
+	"golang.org/x/net/context"
 )
 
 // StartBluetooth runs the bluetooth cycle forever, scanning for some time and processing results
