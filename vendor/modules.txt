@@ -1,32 +1,50 @@
-# github.com/BurntSushi/toml v0.3.1
+# github.com/BurntSushi/toml v1.2.1
+## explicit; go 1.16
 github.com/BurntSushi/toml
+github.com/BurntSushi/toml/internal
 # github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8
+## explicit
 github.com/currantlabs/ble
-github.com/currantlabs/ble/examples/lib/dev
 github.com/currantlabs/ble/darwin
+github.com/currantlabs/ble/examples/lib/dev
 github.com/currantlabs/ble/linux
+github.com/currantlabs/ble/linux/adv
 github.com/currantlabs/ble/linux/att
 github.com/currantlabs/ble/linux/gatt
 github.com/currantlabs/ble/linux/hci
-github.com/currantlabs/ble/linux/adv
 github.com/currantlabs/ble/linux/hci/cmd
 github.com/currantlabs/ble/linux/hci/evt
 github.com/currantlabs/ble/linux/hci/socket
-# github.com/gocarina/gocsv v0.0.0-20190426105157-2fc85fcf0c07
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+# github.com/gocarina/gocsv v0.0.0-20220927221512-ad3251f9fa25
+## explicit; go 1.13
 github.com/gocarina/gocsv
-# github.com/mattn/go-colorable v0.1.2
+# github.com/mattn/go-colorable v0.1.13
+## explicit; go 1.15
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.8
+# github.com/mattn/go-isatty v0.0.16
+## explicit; go 1.15
 github.com/mattn/go-isatty
-# github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
+# github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
+## explicit
 github.com/mgutz/ansi
 # github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab
+## explicit
 github.com/mgutz/logxi/v1
-# github.com/pkg/errors v0.8.1
+# github.com/pkg/errors v0.9.1
+## explicit
 github.com/pkg/errors
-# github.com/raff/goble v0.0.0-20190228063054-5a206277e735
+# github.com/raff/goble v0.0.0-20200327175727-d63360dcfd80
+## explicit
 github.com/raff/goble/xpc
-# golang.org/x/net v0.0.0-20190611141213-3f473d35a33a
+# github.com/stretchr/testify v1.6.1
+## explicit; go 1.13
+# golang.org/x/net v0.1.0
+## explicit; go 1.17
 golang.org/x/net/context
-# golang.org/x/sys v0.0.0-20190610200419-93c9922d18ae
+# golang.org/x/sys v0.1.0
+## explicit; go 1.17
 golang.org/x/sys/unix
+# gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+## explicit
