@@ -131,6 +131,7 @@ func (d *duration) UnmarshalText(text []byte) error {
 	d.Duration, err = time.ParseDuration(string(text))
 	return err
 }
+
 func (d duration) AsTimeDuration() time.Duration {
 	return d.Duration
 }
