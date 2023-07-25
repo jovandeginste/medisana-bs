@@ -7,8 +7,10 @@ import (
 	"github.com/jovandeginste/medisana-bs/structs"
 )
 
-var metricChan chan *structs.PartialMetric
-var config structs.Config
+var (
+	metricChan chan *structs.PartialMetric
+	config     structs.Config
+)
 
 func main() {
 	log.Println("[MAIN] Initializing Bluetooth Scale monitor")

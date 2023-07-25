@@ -66,6 +66,7 @@ func updateBody(update structs.Body) {
 	person.BodyMetrics[update.Timestamp] = bodyMetric
 	printPerson(person)
 }
+
 func updateWeight(update structs.Weight) {
 	if !update.Valid {
 		return
@@ -87,6 +88,7 @@ func updateWeight(update structs.Weight) {
 	person.BodyMetrics[update.Timestamp] = bodyMetric
 	printPerson(person)
 }
+
 func printPerson(person *structs.PersonMetrics) {
 	log.Printf("[METRIC PARSER] Person %d now has %d metrics.\n", person.Person, len(person.BodyMetrics))
 }

@@ -35,8 +35,10 @@ type MailRecipient struct {
 // Initialize the Mail plugin
 func (plugin Mail) Initialize(c structs.Config) structs.Plugin {
 	newc := c.Plugins["mail"]
-	p := Mail{newc.Server, newc.SenderName, newc.SenderAddress, newc.Recipients, newc.StartTLS,
-		newc.TemplateFile, newc.Subject, newc.Metrics}
+	p := Mail{
+		newc.Server, newc.SenderName, newc.SenderAddress, newc.Recipients, newc.StartTLS,
+		newc.TemplateFile, newc.Subject, newc.Metrics,
+	}
 	plugin = p
 	log.Println("[PLUGIN MAIL] I am the Mail plugin")
 	log.Printf("[PLUGIN MAIL]   - Server: %s\n", plugin.Server)
@@ -126,7 +128,6 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) {
 func parseTemplate(templateFileName string, data interface{}) (string, error) {
 	var result string
 	t, err := template.ParseFiles(templateFileName)
-
 	if err != nil {
 		return result, err
 	}

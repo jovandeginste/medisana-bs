@@ -73,14 +73,17 @@ func decodeBody(data []byte) (body structs.Body) {
 func smallValue(value int) float32 {
 	return float32(0x0fff&value) / 10.0
 }
+
 func decode8(data []byte, firstByte int) int {
 	myUint := data[firstByte]
 	return int(myUint)
 }
+
 func decode16(data []byte, firstByte int) int {
 	myUint := binary.LittleEndian.Uint16(data[firstByte:(firstByte + 2)])
 	return int(myUint)
 }
+
 func decode32(data []byte, firstByte int) int {
 	myUint := binary.LittleEndian.Uint32(data[firstByte:(firstByte + 4)])
 	return int(myUint)
