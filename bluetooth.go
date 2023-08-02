@@ -2,125 +2,126 @@ package main
 
 import (
 	"encoding/binary"
+	"log"
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
-	"github.com/currantlabs/ble"
-	"github.com/currantlabs/ble/examples/lib/dev"
-	"golang.org/x/net/context"
+	"tinygo.org/x/bluetooth"
 )
 
-func showError(err error) {
-	if err == nil {
-		return
-	}
-
-	log.Errorf("[BLUETOOTH] Error: %s", err)
-}
-
 // StartBluetooth runs the bluetooth cycle forever, scanning for some time and processing results
-func StartBluetooth() { //nolint:funlen
-	d, err := dev.NewDevice(config.Device)
-	if err != nil {
-		log.Fatalf("[BLUETOOTH] Can't use device: %s", err)
-	}
-
-	ble.SetDefaultDevice(d)
-
-	filter := func(a ble.Advertisement) bool {
-		return strings.EqualFold(a.Address().String(), config.DeviceID)
-	}
-
+func StartBluetooth() {
 	for {
-		ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
-
-		log.Infoln("[BLUETOOTH] Starting scan...")
-
-		cln, err := ble.Connect(ctx, filter)
-		if err != nil {
-			log.Errorf("[BLUETOOTH] Scan timeout: %s", err)
-			continue
-		}
-
-		// Normally, the connection is disconnected by us after our exploration.
-		// However, it can be asynchronously disconnected by the remote peripheral.
-		// So we wait(detect) the disconnection in the go routine.
-		go func() {
-			select {
-			case <-cln.Disconnected():
-				log.Infof("[BLUETOOTH] [ %s ] is disconnected ", cln.Address())
-			case <-time.After(config.Sub.AsTimeDuration()):
-				log.Infof("[BLUETOOTH] [ %s ] timed out", cln.Address())
-			}
-		}()
-
-		log.Infof("[BLUETOOTH] [ %s ] is connected ...", cln.Address())
-		log.Infoln("[BLUETOOTH] Discovering profile...")
-
-		p, err := cln.DiscoverProfile(true)
-		if err != nil {
-			log.Errorf("[BLUETOOTH] can't discover profile: %s", err)
-			showError(cln.CancelConnection())
-
-			continue
-		}
-
-		log.Infof("[BLUETOOTH] Name: '%s'", cln.Name())
-
-		// Start the exploration.
-		explore(cln, p)
-
-		log.Infof("[BLUETOOTH] Discovery done, waiting %d seconds before disconnecting.", (config.Sub.AsTimeDuration() / 1e9))
-		time.Sleep(config.Sub.AsTimeDuration())
-
-		// Disconnect the connection. (On OS X, this might take a while.)
-		log.Infof("[BLUETOOTH] Disconnecting [ %s ]... (this might take up to few seconds on OS X)", cln.Address())
-
-		showError(cln.ClearSubscriptions())
-		showError(cln.CancelConnection())
+		loop()
 
 		time.Sleep(5 * time.Second)
 	}
 }
 
-func explore(cln ble.Client, p *ble.Profile) {
-	// First we subscribe to the metrics
-	for _, s := range p.Services {
-		for _, c := range s.Characteristics {
-			switch c.UUID.String() {
-			case "8a21", "8a22", "8a82":
-				h := func(req []byte) { go decodeData(req) }
+func loop() {
+	d := bluetooth.DefaultAdapter
 
-				if err := cln.Subscribe(c, true, h); err != nil {
-					log.Errorf("[BLUETOOTH] subscribe failed: %s", err)
-				}
-			}
-		}
+	if err := d.Enable(); err != nil {
+		log.Printf("[BLUETOOTH] Can't use device: %s", err)
+		return
 	}
 
-	// Then we send the current time (which triggers data transmission)
-	for _, s := range p.Services {
-		for _, c := range s.Characteristics {
-			if c.UUID.String() == "8a81" {
-				log.Infof("[BLUETOOTH] Sending the time... ")
+	var device *bluetooth.Device
 
-				binarytime := generateTime()
+	log.Println("[BLUETOOTH] Starting scan...")
 
-				if err := cln.WriteCharacteristic(c, binarytime, true); err != nil {
-					log.Errorf("[BLUETOOTH] Error while writing command: %+v", err)
-				}
+	ch := make(chan bluetooth.ScanResult, 1)
 
-				log.Infof("[BLUETOOTH] done.")
+	err := d.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
+		if strings.EqualFold(result.Address.String(), config.DeviceID) {
+			log.Printf("[BLUETOOTH] Found device: %s (%d, %s)", result.Address.String(), result.RSSI, result.LocalName())
+
+			if err := adapter.StopScan(); err != nil {
+				log.Printf("[BLUETOOTH] Can't use device: %s", err)
+				return
 			}
+
+			ch <- result
+		}
+	})
+	if err != nil {
+		log.Printf("[BLUETOOTH] Can't use device: %s", err)
+		return
+	}
+
+	select {
+	case result := <-ch:
+		device, err = d.Connect(result.Address, bluetooth.ConnectionParams{})
+		if err != nil {
+			log.Printf("[BLUETOOTH] [ %s ] connection failed: %s", result.Address.String(), err)
+			return
+		}
+
+		log.Printf("[BLUETOOTH] [ %s ] is connected ...", result.Address.String())
+
+		defer device.Disconnect()
+	}
+
+	log.Println("[BLUETOOTH] Discovering profile...")
+
+	// Start the exploration.
+	explore(device)
+
+	log.Printf("[BLUETOOTH] Discovery done, waiting %d seconds before disconnecting.\n", (config.Sub.AsTimeDuration() / 1e9))
+	time.Sleep(config.Sub.AsTimeDuration())
+}
+
+func explore(p *bluetooth.Device) {
+	// First we subscribe to the metrics
+	services, err := p.DiscoverServices(nil)
+	if err != nil {
+		log.Printf("[BLUETOOTH] Error exploring: %s", err)
+		return
+	}
+
+	for _, s := range services {
+		chars, err := s.DiscoverCharacteristics(nil)
+		if err != nil {
+			log.Printf("[BLUETOOTH] Error exploring: %s", err)
+			continue
+		}
+
+		for _, c := range chars {
+			if !c.UUID().Is16Bit() {
+				continue
+			}
+
+			s := strings.Trim(strings.Split(c.UUID().String(), "-")[0], "0")
+			log.Printf("[BLUETOOTH] Discovering service: %s", s)
+
+			switch s {
+			case "8a21", "8a22", "8a82":
+				err := c.EnableNotifications(func(buf []byte) {
+					log.Printf("data: %#v\n", buf)
+					go decodeData(buf)
+				})
+				if err != nil {
+					log.Printf("[BLUETOOTH] Error exploring: %s", err)
+					continue
+				}
+			case "8a81":
+				log.Printf("[BLUETOOTH] Sending the time... ")
+
+				thetime := time.Now().Unix()
+
+				binarytime := generateTime(thetime)
+				if _, err := c.WriteWithoutResponse(binarytime); err != nil {
+					log.Printf("[BLUETOOTH] Error while writing command: %+v\n", err)
+					continue
+				}
+			}
+
+			log.Printf("[BLUETOOTH] done.\n")
 		}
 	}
 }
 
-func generateTime() []byte {
-	therealtime := time.Now().Unix()
-
+func generateTime(therealtime int64) []byte {
 	bs := make([]byte, 4)
 	thetime := uint32(therealtime) - 1262304000
 	binary.LittleEndian.PutUint32(bs, thetime)

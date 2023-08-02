@@ -2,64 +2,53 @@
 ## explicit; go 1.16
 github.com/BurntSushi/toml
 github.com/BurntSushi/toml/internal
-# github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8
+# github.com/fatih/structs v1.1.0
 ## explicit
-github.com/currantlabs/ble
-github.com/currantlabs/ble/darwin
-github.com/currantlabs/ble/examples/lib/dev
-github.com/currantlabs/ble/linux
-github.com/currantlabs/ble/linux/adv
-github.com/currantlabs/ble/linux/att
-github.com/currantlabs/ble/linux/gatt
-github.com/currantlabs/ble/linux/hci
-github.com/currantlabs/ble/linux/hci/cmd
-github.com/currantlabs/ble/linux/hci/evt
-github.com/currantlabs/ble/linux/hci/socket
-# github.com/eclipse/paho.mqtt.golang v1.4.3
-## explicit; go 1.18
-github.com/eclipse/paho.mqtt.golang
-github.com/eclipse/paho.mqtt.golang/packets
+github.com/fatih/structs
+# github.com/go-ole/go-ole v1.2.6
+## explicit; go 1.12
+github.com/go-ole/go-ole
 # github.com/gocarina/gocsv v0.0.0-20230616125104-99d496ca653d
 ## explicit; go 1.13
 github.com/gocarina/gocsv
-# github.com/gorilla/websocket v1.5.0
+# github.com/godbus/dbus/v5 v5.0.3
 ## explicit; go 1.12
-github.com/gorilla/websocket
-# github.com/mattn/go-colorable v0.1.13
-## explicit; go 1.15
-github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.19
-## explicit; go 1.15
-github.com/mattn/go-isatty
-# github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
-## explicit
-github.com/mgutz/ansi
-# github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab
-## explicit
-github.com/mgutz/logxi/v1
-# github.com/pkg/errors v0.9.1
-## explicit
-github.com/pkg/errors
-# github.com/raff/goble v0.0.0-20200327175727-d63360dcfd80
-## explicit
-github.com/raff/goble/xpc
-# github.com/sirupsen/logrus v1.9.3
+github.com/godbus/dbus/v5
+github.com/godbus/dbus/v5/introspect
+github.com/godbus/dbus/v5/prop
+# github.com/muka/go-bluetooth v0.0.0-20220830075246-0746e3a1ea53
+## explicit; go 1.14
+github.com/muka/go-bluetooth/api
+github.com/muka/go-bluetooth/api/service
+github.com/muka/go-bluetooth/bluez
+github.com/muka/go-bluetooth/bluez/profile
+github.com/muka/go-bluetooth/bluez/profile/adapter
+github.com/muka/go-bluetooth/bluez/profile/advertising
+github.com/muka/go-bluetooth/bluez/profile/agent
+github.com/muka/go-bluetooth/bluez/profile/device
+github.com/muka/go-bluetooth/bluez/profile/gatt
+github.com/muka/go-bluetooth/props
+github.com/muka/go-bluetooth/util
+# github.com/saltosystems/winrt-go v0.0.0-20230510070731-e096b9afa761
+## explicit; go 1.18
+github.com/saltosystems/winrt-go
+github.com/saltosystems/winrt-go/windows/devices/bluetooth
+github.com/saltosystems/winrt-go/windows/devices/bluetooth/advertisement
+github.com/saltosystems/winrt-go/windows/devices/bluetooth/genericattributeprofile
+github.com/saltosystems/winrt-go/windows/foundation
+github.com/saltosystems/winrt-go/windows/foundation/collections
+github.com/saltosystems/winrt-go/windows/storage/streams
+# github.com/sirupsen/logrus v1.9.0
 ## explicit; go 1.13
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.7.1
-## explicit; go 1.13
-# golang.org/x/net v0.12.0
-## explicit; go 1.17
-golang.org/x/net/context
-golang.org/x/net/internal/socks
-golang.org/x/net/proxy
-# golang.org/x/sync v0.1.0
-## explicit
-golang.org/x/sync/semaphore
+# github.com/tinygo-org/cbgo v0.0.4
+## explicit; go 1.14
+github.com/tinygo-org/cbgo
 # golang.org/x/sys v0.10.0
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# gopkg.in/yaml.v3 v3.0.1
-## explicit
+# tinygo.org/x/bluetooth v0.7.0
+## explicit; go 1.15
+tinygo.org/x/bluetooth
