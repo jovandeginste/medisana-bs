@@ -2,11 +2,19 @@ package main
 
 import (
 	"encoding/binary"
-	"log"
 	"strings"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"tinygo.org/x/bluetooth"
+)
+
+const (
+	CharPerson  = "00008a82-0000-1000-8000-00805f9b34fb" // person data
+	CharWeight  = "00008a21-0000-1000-8000-00805f9b34fb" // weight data
+	CharBody    = "00008a22-0000-1000-8000-00805f9b34fb" // body data
+	CharCommand = "00008a81-0000-1000-8000-00805f9b34fb" // command register
 )
 
 // StartBluetooth runs the bluetooth cycle forever, scanning for some time and processing results
@@ -22,106 +30,107 @@ func loop() {
 	d := bluetooth.DefaultAdapter
 
 	if err := d.Enable(); err != nil {
-		log.Printf("[BLUETOOTH] Can't use device: %s", err)
+		log.Errorf("[BLUETOOTH] Can't use device: %s", err)
 		return
 	}
 
 	var device *bluetooth.Device
 
-	log.Println("[BLUETOOTH] Starting scan...")
+	log.Infoln("[BLUETOOTH] Starting scan...")
 
-	ch := make(chan bluetooth.ScanResult, 1)
+	var r bluetooth.ScanResult
 
 	err := d.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
-		if strings.EqualFold(result.Address.String(), config.DeviceID) {
-			log.Printf("[BLUETOOTH] Found device: %s (%d, %s)", result.Address.String(), result.RSSI, result.LocalName())
-
-			if err := adapter.StopScan(); err != nil {
-				log.Printf("[BLUETOOTH] Can't use device: %s", err)
-				return
-			}
-
-			ch <- result
-		}
-	})
-	if err != nil {
-		log.Printf("[BLUETOOTH] Can't use device: %s", err)
-		return
-	}
-
-	select {
-	case result := <-ch:
-		device, err = d.Connect(result.Address, bluetooth.ConnectionParams{})
-		if err != nil {
-			log.Printf("[BLUETOOTH] [ %s ] connection failed: %s", result.Address.String(), err)
+		if !strings.EqualFold(result.Address.String(), config.DeviceID) {
 			return
 		}
 
-		log.Printf("[BLUETOOTH] [ %s ] is connected ...", result.Address.String())
+		log.Infof("[BLUETOOTH] Found device: %s (%d, %s)", result.Address.String(), result.RSSI, result.LocalName())
 
-		defer device.Disconnect()
+		if err := adapter.StopScan(); err != nil {
+			log.Errorf("[BLUETOOTH] Can't cancel the scan: %s", err)
+			return
+		}
+
+		r = result
+	})
+	if err != nil {
+		log.Errorf("[BLUETOOTH] Can't use device: %s", err)
+		return
 	}
 
-	log.Println("[BLUETOOTH] Discovering profile...")
+	log.Infof("[BLUETOOTH] Connecting to: %s", r.Address.String())
 
-	// Start the exploration.
+	device, err = d.Connect(r.Address, bluetooth.ConnectionParams{})
+	if err != nil {
+		log.Errorf("[BLUETOOTH] [ %s ] connection failed: %s", r.Address.String(), err)
+		return
+	}
+
+	defer func() {
+		if err := device.Disconnect(); err != nil {
+			log.Errorf("Error disconnecting: %s", err)
+		}
+	}()
+
+	log.Infof("[BLUETOOTH] [ %s ] is connected ...", r.Address.String())
+
 	explore(device)
 
-	log.Printf("[BLUETOOTH] Discovery done, waiting %d seconds before disconnecting.\n", (config.Sub.AsTimeDuration() / 1e9))
-	time.Sleep(config.Sub.AsTimeDuration())
+	log.Infoln("[BLUETOOTH] Discovery, disconnecting...")
 }
 
 func explore(p *bluetooth.Device) {
+	log.Infoln("[BLUETOOTH] Discovering profile...")
+
 	// First we subscribe to the metrics
 	services, err := p.DiscoverServices(nil)
 	if err != nil {
-		log.Printf("[BLUETOOTH] Error exploring: %s", err)
+		log.Errorf("[BLUETOOTH] Error exploring: %s", err)
 		return
 	}
 
 	for _, s := range services {
 		chars, err := s.DiscoverCharacteristics(nil)
 		if err != nil {
-			log.Printf("[BLUETOOTH] Error exploring: %s", err)
+			log.Errorf("[BLUETOOTH] Error exploring: %s", err)
 			continue
 		}
 
 		for _, c := range chars {
-			if !c.UUID().Is16Bit() {
-				continue
-			}
-
-			s := strings.Trim(strings.Split(c.UUID().String(), "-")[0], "0")
-			log.Printf("[BLUETOOTH] Discovering service: %s", s)
+			s := c.UUID().String()
+			log.Tracef("[BLUETOOTH] Discovering service: %s", s)
 
 			switch s {
-			case "8a21", "8a22", "8a82":
+			case CharPerson, CharWeight, CharBody:
+				log.Tracef("[BLUETOOTH] Receiving data... ")
+
 				err := c.EnableNotifications(func(buf []byte) {
-					log.Printf("data: %#v\n", buf)
 					go decodeData(buf)
 				})
 				if err != nil {
-					log.Printf("[BLUETOOTH] Error exploring: %s", err)
+					log.Errorf("[BLUETOOTH] Error exploring: %s", err)
 					continue
 				}
-			case "8a81":
-				log.Printf("[BLUETOOTH] Sending the time... ")
+			case CharCommand:
+				log.Infof("[BLUETOOTH] Sending the time... ")
 
-				thetime := time.Now().Unix()
-
-				binarytime := generateTime(thetime)
+				binarytime := generateTime()
 				if _, err := c.WriteWithoutResponse(binarytime); err != nil {
-					log.Printf("[BLUETOOTH] Error while writing command: %+v\n", err)
+					log.Errorf("[BLUETOOTH] Error while writing command: %+v\n", err)
 					continue
 				}
 			}
 
-			log.Printf("[BLUETOOTH] done.\n")
+			log.Tracef("[BLUETOOTH] done.")
 		}
 	}
+
+	time.Sleep(config.Sub.AsTimeDuration())
 }
 
-func generateTime(therealtime int64) []byte {
+func generateTime() []byte {
+	therealtime := time.Now().Unix()
 	bs := make([]byte, 4)
 	thetime := uint32(therealtime) - 1262304000
 	binary.LittleEndian.PutUint32(bs, thetime)
