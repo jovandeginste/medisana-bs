@@ -65,15 +65,25 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) {
 	subject := plugin.Subject
 
 	metrics := make(structs.BodyMetrics, len(person.BodyMetrics))
+
 	idx := 0
+
 	for _, value := range person.BodyMetrics {
 		metrics[idx] = value
 		idx++
 	}
+
 	sort.Sort(metrics)
 	lastMetrics := make(map[int]structs.AnnotatedBodyMetric)
-	previousMetric := metrics[len(metrics)-plugin.Metrics-1]
-	for _, value := range metrics[len(metrics)-plugin.Metrics:] {
+
+	l := len(metrics) - plugin.Metrics - 1
+	if l < 0 {
+		l = 0
+	}
+
+	previousMetric := metrics[l]
+
+	for _, value := range metrics[l+1:] {
 		annotations := structs.BodyMetricAnnotations{
 			Time:        time.Unix(int64(value.Timestamp), 0),
 			DeltaWeight: value.Weight - previousMetric.Weight,

@@ -1,20 +1,21 @@
-<p>Dear {{.Name}},</p>
-<p>We received new data from your scale!</p>
+<p>Beste {{.Name}},</p>
+<p>Je hebt zojuist op de weegschaal gestaan.</p>
+<p>Dit is een overzicht van je laatste {{ len .Metrics }} metingen:</p>
 
 <table style="width: 100%; border: 1px solid black;">
 	<tr>
-		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Date</th>
-		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Weight (kg)</th>
-		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Fat (%)</th>
-		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Muscle (%)</th>
-		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Bones (kg)</th>
+		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Datum</th>
+		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Gewicht (kg)</th>
+		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Vet (%)</th>
+		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Spieren (%)</th>
+		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Botten (kg)</th>
 		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">Water (%)</th>
 		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">kCal</th>
 		<th style="text-align: center; color: white; background-color: black; padding: 5px; border: 1px solid black;">BMI</th>
 	</tr>
 	{{ range $key, $metric := .Metrics }}
 	<tr style="background-color: #fff;">
-		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ .Annotations.Time.Format "2/1 15:04" }}</td>
+		<td style="text-align: right; padding: 5px; border: 1px solid black;">{{ .Annotations.Time.Format "02/01/06 15:04" }}</td>
 		<td style="text-align: right; color: {{if le .Annotations.DeltaWeight 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Weight }}</td>
 		<td style="text-align: right; color: {{if le .Annotations.DeltaFat 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Fat }}</td>
 		<td style="text-align: right; color: {{if ge .Annotations.DeltaMuscle 0.0}}green{{else}}red{{end}}; padding: 5px; border: 1px solid black;">{{ .BodyMetric.Muscle }}</td>
@@ -26,5 +27,7 @@
 	{{ end }}
 </table>
 
-<p>Sincerely,</p>
-<p>Your scale.</p>
+<p>Meer gegevens vind je <a href="https://scale.dwarfy.be/?p={{ .PersonID }}">hier</a></p>
+<br/>
+<p>Groeten,</p>
+<p>De weegschaal.</p>

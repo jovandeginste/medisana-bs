@@ -20,14 +20,14 @@ type BodyMetrics []BodyMetric
 
 // BodyMetric is a single tuple of measurements for a given person
 type BodyMetric struct {
-	Timestamp int
-	Weight    float32
-	Fat       float32
-	Muscle    float32
-	Bone      float32
-	Tbw       float32
-	Kcal      int
-	Bmi       float32
+	Timestamp int     `json:"timestamp"`
+	Weight    float32 `json:"weight"`
+	Fat       float32 `json:"fat"`
+	Muscle    float32 `json:"muscle"`
+	Bone      float32 `json:"bone"`
+	Tbw       float32 `json:"tbw"`
+	Kcal      int     `json:"kcal"`
+	Bmi       float32 `json:"bmi"`
 }
 
 // AnnotatedBodyMetric contains the values of BodyMetric plus some custom annotations plugins to show
@@ -111,9 +111,12 @@ type PluginConfig struct {
 	TemplateFile  string
 	Subject       string
 	Metrics       int
-	Dir           string
 	StartTLS      bool
 	Recipients    map[string]MailRecipient
+	Dir           string
+	Host          string
+	Username      string
+	Password      string
 }
 
 // MailRecipient contains a person's name and a list of mail addresses to get updates

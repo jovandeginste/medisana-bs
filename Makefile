@@ -9,7 +9,7 @@ pi-service:
 	rsync -vaiz dist/medisana-bs.service root@scale-pi:/etc/systemd/system/medisana-bs.service
 	ssh root@scale-pi systemctl daemon-reload
 
-pi: pi-service arm6
+pi: arm6
 	rsync -vaiz build/medisana-bs.arm6 root@scale-pi:/opt/medisana-bs/
 	ssh root@scale-pi systemctl restart medisana-bs
 	sleep 5
