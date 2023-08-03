@@ -6,6 +6,7 @@ import (
 
 // PersonMetrics has all data about a single person, including a list of measurements (body metrics)
 type PersonMetrics struct {
+	Name        string
 	Person      int
 	Gender      string
 	Age         int
@@ -100,7 +101,12 @@ type Config struct {
 	CsvDir       string
 	TimeOffset   int
 	Fakeit       bool
+	People       map[string]PersonConfig
 	Plugins      map[string]PluginConfig
+}
+
+type PersonConfig struct {
+	Name string
 }
 
 // PluginConfig contains any possible Plugin configuration

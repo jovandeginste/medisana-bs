@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -17,6 +18,7 @@ func MetricParser() {
 	for i := range allPersons {
 		allPersons[i] = &structs.PersonMetrics{Person: i + 1, BodyMetrics: make(map[int]structs.BodyMetric)}
 		allPersons[i].ImportBodyMetrics(structs.ImportCsv(i + 1))
+		allPersons[i].Name = config.People[fmt.Sprintf("%d", i+1)].Name
 	}
 
 	syncChan := make(chan bool)
@@ -112,7 +114,7 @@ func updateWeight(update structs.Weight) {
 }
 
 func printPerson(person *structs.PersonMetrics) {
-	log.Infof("[METRIC PARSER] Person %d now has %d metrics.", person.Person, len(person.BodyMetrics))
+	log.Infof("[METRIC PARSER] Person %d (%s) now has %d metrics.", person.Person, person.Name, len(person.BodyMetrics))
 }
 
 func debounce(lull time.Duration, in chan bool) {
@@ -122,7 +124,7 @@ func debounce(lull time.Duration, in chan bool) {
 		case <-time.Tick(lull):
 			for _, person := range allPersons {
 				if person.Updated {
-					log.Infof("[METRIC PARSER] Person %d was updated -- calling all plugins.", person.Person)
+					log.Infof("[METRIC PARSER] Person %d (%s) was updated -- calling all plugins.", person.Person, person.Name)
 					plugins.ParseData(person)
 					person.Updated = false
 				}

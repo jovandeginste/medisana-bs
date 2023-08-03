@@ -81,7 +81,7 @@ type payload struct {
 }
 
 func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
-	identifier := fmt.Sprintf("%s_person_%d", plugin.model, person.Person)
+	identifier := fmt.Sprintf("%s_person_%s", plugin.model, person.Name)
 	identifierLower := strings.ToLower(identifier)
 
 	for _, measurement := range measurements {
@@ -96,7 +96,7 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 		adTopic := fmt.Sprintf("homeassistant/sensor/%s/%s/config", identifierLower, measurement["ha_value"])
 
 		adPayload := payload{
-			Name:              measurement["name"],
+			Name:              fmt.Sprintf("%s of %s", measurement["name"], person.Name),
 			ValueTemplate:     fmt.Sprintf("{{ value_json.%s }}", measurement["scale_value"]),
 			UnitOfMeasurement: measurement["unit"],
 			Icon:              "mdi:" + measurement["icon"],
@@ -148,7 +148,7 @@ func (plugin MQTT) ParseData(person *structs.PersonMetrics) bool {
 }
 
 func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
-	identifier := fmt.Sprintf("%s_person_%d", plugin.model, person.Person)
+	identifier := fmt.Sprintf("%s_person_%s", plugin.model, person.Name)
 	identifierLower := strings.ToLower(identifier)
 	adTopic := fmt.Sprintf("homeassistant/sensor/%s/state", identifierLower)
 
