@@ -1,11 +1,12 @@
 package plugins
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gocarina/gocsv"
 	"github.com/jovandeginste/medisana-bs/structs"
@@ -20,46 +21,52 @@ type Csv struct {
 func (plugin Csv) Initialize(c structs.Config) structs.Plugin {
 	newc := c.Plugins["csv"]
 	plugin.Dir = newc.Dir
-	log.Println("[PLUGIN CSV] I am the CSV plugin")
-	log.Printf("[PLUGIN CSV]   - Dir: %s\n", plugin.Dir)
+
+	log.Debugln("[PLUGIN CSV] I am the CSV plugin")
+	log.Debugf("[PLUGIN CSV]   - Dir: %s", plugin.Dir)
+
 	return plugin
 }
 
 // ParseData will parse new data for a given person
 func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
-	log.Println("[PLUGIN CSV] The csv plugin is parsing new data")
+	log.Infoln("[PLUGIN CSV] The csv plugin is parsing new data")
+
 	personID := person.Person
 	metrics := make(structs.BodyMetrics, len(person.BodyMetrics))
 	idx := 0
+
 	for _, value := range person.BodyMetrics {
 		metrics[idx] = value
 		idx++
 	}
+
 	sort.Sort(metrics)
 
 	csvFile := plugin.Dir + "/" + strconv.Itoa(personID) + ".csv"
-	log.Printf("[PLUGIN CSV] Writing to file '%s'.\n", csvFile)
+	log.Infof("[PLUGIN CSV] Writing to file '%s'.", csvFile)
 	createCsvDir(csvFile)
 
 	f, err := os.Create(csvFile)
 	if err != nil {
-		log.Printf("[PLUGIN CSV] %#v", err)
+		log.Errorf("[PLUGIN CSV] %#v", err)
 	}
 	defer f.Close()
 
-	err = gocsv.MarshalWithoutHeaders(&metrics, f)
-
-	if err != nil {
-		log.Printf("[PLUGIN CSV] %#v", err)
+	if err := gocsv.MarshalWithoutHeaders(&metrics, f); err != nil {
+		log.Errorf("[PLUGIN CSV] %#v", err)
 	}
+
 	return true
 }
 
 func createCsvDir(file string) {
 	path := filepath.Dir(file)
-	mode := os.FileMode(0700)
+	mode := os.FileMode(0o700)
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.MkdirAll(path, mode)
+		if mkErr := os.MkdirAll(path, mode); mkErr != nil {
+			log.Fatalf("[PLUGIN CSV] Could not create CSV dir: %s", mkErr)
+		}
 	}
 }

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"log"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/BurntSushi/toml"
 	"github.com/jovandeginste/medisana-bs/structs"
@@ -10,15 +11,16 @@ import (
 
 // ReadConfig reads the file and converts it to a struct
 func ReadConfig(configfile string) structs.Config {
+	var cfg structs.Config
+
 	_, err := os.Stat(configfile)
 	if err != nil {
 		log.Fatal("Config file is missing: ", configfile)
 	}
 
-	var config structs.Config
-	if _, err := toml.DecodeFile(configfile, &config); err != nil {
+	if _, err := toml.DecodeFile(configfile, &cfg); err != nil {
 		log.Fatal(err)
 	}
 
-	return config
+	return cfg
 }

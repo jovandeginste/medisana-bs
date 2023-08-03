@@ -2,13 +2,14 @@ package main
 
 import (
 	"encoding/binary"
-	"log"
 	"math"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/jovandeginste/medisana-bs/structs"
 )
 
-func decodePerson(data []byte) (person structs.Person) {
+func decodePerson(data []byte) structs.Person {
 	/*
 		fixed: byte 0                       [0x84]
 		person: byte 2                      [1..8]
@@ -17,38 +18,50 @@ func decodePerson(data []byte) (person structs.Person) {
 		size: byte 6                        [cm]
 		activity: byte 8 (0=normal, 3=high) [0|3]
 	*/
-	person.Valid = (data[0] == 0x84)
-	person.Person = decode8(data, 2)
-	if data[4] == 1 {
-		person.Gender = "male"
-	} else {
-		person.Gender = "female"
+	person := structs.Person{
+		Valid:    (data[0] == 0x84),
+		Person:   decode8(data, 2),
+		Gender:   decodeGender(data[4]),
+		Age:      decode8(data, 5),
+		Size:     decode8(data, 6),
+		Activity: decodeActivity(data[8]),
 	}
-	person.Age = decode8(data, 5)
-	person.Size = decode8(data, 6)
-	if data[8] == 3 {
-		person.Activity = "high"
-	} else {
-		person.Activity = "normal"
-	}
-	return
+
+	return person
 }
 
-func decodeWeight(data []byte) (weight structs.Weight) {
+func decodeGender(data byte) string {
+	if data == 1 {
+		return "male"
+	}
+
+	return "female"
+}
+
+func decodeActivity(data byte) string {
+	if data == 3 {
+		return "high"
+	}
+
+	return "normal"
+}
+
+func decodeWeight(data []byte) structs.Weight {
 	/*
 		fixed: byte: 0                     [0x1d]
 		weight: byte: 1 & 2                [kg*100]
 		timestamp: byte 5-8                Unix timestamp
 		person: byte 13                    [1..8]
 	*/
-	weight.Valid = (data[0] == 0x1d)
-	weight.Weight = float32(decode16(data, 1)) / 100.0
-	weight.Timestamp = sanitizeTimestamp(decode32(data, 5))
-	weight.Person = decode8(data, 13)
-	return
+	return structs.Weight{
+		Valid:     (data[0] == 0x1d),
+		Weight:    float32(decode16(data, 1)) / 100.0,
+		Timestamp: sanitizeTimestamp(decode32(data, 5)),
+		Person:    decode8(data, 13),
+	}
 }
 
-func decodeBody(data []byte) (body structs.Body) {
+func decodeBody(data []byte) structs.Body {
 	/*
 		fixed: byte 0                      [0x6f]
 		timestamp: byte 1-4                Unix timestamp
@@ -59,15 +72,16 @@ func decodeBody(data []byte) (body structs.Body) {
 		muscle: byte 12 & 13               first nibble = 0xf, [muscle*10]
 		bone: byte 14 & 15                 first nibble = 0xf, [bone*10]
 	*/
-	body.Valid = (data[0] == 0x6f)
-	body.Timestamp = sanitizeTimestamp(decode32(data, 1))
-	body.Person = decode8(data, 5)
-	body.Kcal = decode16(data, 6)
-	body.Fat = smallValue(decode16(data, 8))
-	body.Tbw = smallValue(decode16(data, 10))
-	body.Muscle = smallValue(decode16(data, 12))
-	body.Bone = smallValue(decode16(data, 14))
-	return
+	return structs.Body{
+		Valid:     (data[0] == 0x6f),
+		Timestamp: sanitizeTimestamp(decode32(data, 1)),
+		Person:    decode8(data, 5),
+		Kcal:      decode16(data, 6),
+		Fat:       smallValue(decode16(data, 8)),
+		Tbw:       smallValue(decode16(data, 10)),
+		Muscle:    smallValue(decode16(data, 12)),
+		Bone:      smallValue(decode16(data, 14)),
+	}
 }
 
 func smallValue(value int) float32 {
@@ -90,22 +104,20 @@ func decode32(data []byte, firstByte int) int {
 }
 
 func sanitizeTimestamp(timestamp int) int {
-	retTS := 0
-	if timestamp+config.TimeOffset < math.MaxInt32 {
-		retTS = timestamp + config.TimeOffset
-	} else {
-		retTS = timestamp
-	}
-
 	if timestamp >= math.MaxInt32 {
-		retTS = 0
+		return 0
 	}
 
-	return retTS
+	if timestamp+config.TimeOffset < math.MaxInt32 {
+		return timestamp + config.TimeOffset
+	}
+
+	return timestamp
 }
 
 func decodeData(req []byte) {
 	result := new(structs.PartialMetric)
+
 	switch req[0] {
 	case 0x84:
 		person := decodePerson(req)
@@ -117,7 +129,8 @@ func decodeData(req []byte) {
 		body := decodeBody(req)
 		result.Body = body
 	default:
-		log.Printf("[DECODE] Unhandled data encountered: [% X]\n", req)
+		log.Warnf("[DECODE] Unhandled data encountered: [% X]", req)
 	}
+
 	metricChan <- result
 }

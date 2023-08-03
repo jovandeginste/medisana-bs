@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"log"
 	"net/smtp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/jovandeginste/medisana-bs/structs"
 )
@@ -35,31 +36,34 @@ type MailRecipient struct {
 // Initialize the Mail plugin
 func (plugin Mail) Initialize(c structs.Config) structs.Plugin {
 	newc := c.Plugins["mail"]
-	p := Mail{
+	plugin = Mail{
 		newc.Server, newc.SenderName, newc.SenderAddress, newc.Recipients, newc.StartTLS,
 		newc.TemplateFile, newc.Subject, newc.Metrics,
 	}
-	plugin = p
-	log.Println("[PLUGIN MAIL] I am the Mail plugin")
-	log.Printf("[PLUGIN MAIL]   - Server: %s\n", plugin.Server)
-	log.Printf("[PLUGIN MAIL]   - StartTLS: %t [ To be implemented !!! ]\n", plugin.StartTLS)
-	log.Printf("[PLUGIN MAIL]   - SenderName: %s\n", plugin.SenderName)
-	log.Printf("[PLUGIN MAIL]   - SenderAddress: %s\n", plugin.SenderAddress)
-	log.Printf("[PLUGIN MAIL]   - TemplateFile: %s\n", plugin.TemplateFile)
-	log.Printf("[PLUGIN MAIL]   - Subject: %s\n", plugin.Subject)
-	log.Printf("[PLUGIN MAIL]   - Metrics: %d\n", plugin.Metrics)
-	log.Printf("[PLUGIN MAIL]   - Recipients: %d\n", len(plugin.Recipients))
+
+	log.Debugln("[PLUGIN MAIL] I am the Mail plugin")
+	log.Debugf("[PLUGIN MAIL]   - Server: %s", plugin.Server)
+	log.Debugf("[PLUGIN MAIL]   - StartTLS: %t [ To be implemented !!! ]", plugin.StartTLS)
+	log.Debugf("[PLUGIN MAIL]   - SenderName: %s", plugin.SenderName)
+	log.Debugf("[PLUGIN MAIL]   - SenderAddress: %s", plugin.SenderAddress)
+	log.Debugf("[PLUGIN MAIL]   - TemplateFile: %s", plugin.TemplateFile)
+	log.Debugf("[PLUGIN MAIL]   - Subject: %s", plugin.Subject)
+	log.Debugf("[PLUGIN MAIL]   - Metrics: %d", plugin.Metrics)
+	log.Debugf("[PLUGIN MAIL]   - Recipients: %d", len(plugin.Recipients))
+
 	return plugin
 }
 
 // ParseData will parse new data for a given person
 func (plugin Mail) ParseData(person *structs.PersonMetrics) bool {
-	log.Println("[PLUGIN MAIL] The mail plugin is parsing new data")
+	log.Infoln("[PLUGIN MAIL] The mail plugin is parsing new data")
+
 	plugin.sendMail(person)
+
 	return true
 }
 
-func (plugin Mail) sendMail(person *structs.PersonMetrics) {
+func (plugin Mail) sendMail(person *structs.PersonMetrics) { //nolint:funlen
 	personID := person.Person
 	recipient := plugin.Recipients[strconv.Itoa(personID)]
 	subject := plugin.Subject
@@ -74,6 +78,7 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) {
 	}
 
 	sort.Sort(metrics)
+
 	lastMetrics := make(map[int]structs.AnnotatedBodyMetric)
 
 	l := len(metrics) - plugin.Metrics - 1
@@ -107,13 +112,15 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) {
 
 	var auth smtp.Auth
 
-	var msg string
-	msg = msg + fmt.Sprintf("From: %s\n", from)
-	msg = msg + fmt.Sprintf("To: %s\n", strings.Join(to, ","))
-	msg = msg + fmt.Sprintf("Subject: %s\n", subject)
-	msg = msg + "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n"
+	msg := strings.Builder{}
 
-	msg = msg + "\n"
+	msg.WriteString("From: " + from + "\n")
+	msg.WriteString("To: " + strings.Join(to, ",") + "\n")
+	msg.WriteString("Subject: " + subject + "\n")
+	msg.WriteString("MIME-version: 1.0;\n")
+	msg.WriteString("Content-Type: text/html; charset=\"UTF-8\";\n")
+	msg.WriteString("\n")
+
 	parameters := struct {
 		Name     string
 		PersonID int
@@ -123,28 +130,39 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) {
 		PersonID: personID,
 		Metrics:  lastMetrics,
 	}
+
 	body, err := parseTemplate(plugin.TemplateFile, parameters)
 	if err != nil {
-		log.Printf("[PLUGIN MAIL] An error occurred: %+v\n", err)
+		log.Errorf("[PLUGIN MAIL] An error occurred: %s", err)
 		return
 	}
-	msg = msg + body
 
-	log.Printf("[PLUGIN MAIL] Sending mail from %s to %s...\n", from, to)
-	smtp.SendMail(plugin.Server, auth, plugin.SenderAddress, to, []byte(msg))
-	log.Printf("[PLUGIN MAIL] Message was %d bytes.\n", len(msg))
+	msg.WriteString(body)
+
+	log.Infof("[PLUGIN MAIL] Sending mail from %s to %s...", from, to)
+
+	if err := smtp.SendMail(plugin.Server, auth, plugin.SenderAddress, to, []byte(msg.String())); err != nil {
+		log.Errorf("[PLUGIN MAIL] An error occurred: %s", err)
+		return
+	}
+
+	log.Debugf("[PLUGIN MAIL] Message was %d bytes.", msg.Len())
 }
 
 func parseTemplate(templateFileName string, data interface{}) (string, error) {
 	var result string
+
 	t, err := template.ParseFiles(templateFileName)
 	if err != nil {
 		return result, err
 	}
+
 	buf := new(bytes.Buffer)
 	if err = t.Execute(buf, data); err != nil {
 		return result, err
 	}
+
 	result = buf.String()
+
 	return result, nil
 }

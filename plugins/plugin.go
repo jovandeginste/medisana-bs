@@ -1,8 +1,9 @@
 package plugins
 
 import (
-	"log"
 	"sync"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/jovandeginste/medisana-bs/structs"
 )
@@ -20,39 +21,39 @@ func Initialize(configuration structs.Config) {
 	ap := configuration.Plugins
 	allPlugins = make(map[string]structs.Plugin)
 
-	log.Println("[PLUGIN] Initializing plugins")
+	log.Infoln("[PLUGIN] Initializing plugins")
 
 	for name := range ap {
-		log.Printf("[PLUGIN]  --> %s\n", name)
+		log.Infof("[PLUGIN]  --> %s", name)
 
 		pluginType, ok := pluginRegistry[name]
 		if !ok {
-			log.Printf("[PLUGIN]  *-> Unknown plugin: %s", name)
+			log.Infof("[PLUGIN]  *-> Unknown plugin: %s", name)
 			continue
 		}
 
 		p, ok := pluginType.(structs.Plugin)
 		if !ok {
-			log.Println("[PLUGIN]  !-> FAILED")
+			log.Infoln("[PLUGIN]  !-> FAILED")
 			continue
 		}
 
 		allPlugins[name] = p.Initialize(configuration)
 
-		log.Println("[PLUGIN]  *-> success")
+		log.Infoln("[PLUGIN]  *-> success")
 	}
 
-	log.Println("[PLUGIN] All plugins initialized.")
+	log.Infoln("[PLUGIN] All plugins initialized.")
 }
 
 // ParseData will parse new data for a given person and send it to every configured plugin
 func ParseData(person *structs.PersonMetrics) {
-	log.Println("[PLUGIN] Sending data to all plugins")
+	log.Infoln("[PLUGIN] Sending data to all plugins")
 
 	var wg sync.WaitGroup
 
 	for name, plugin := range allPlugins {
-		log.Printf("[PLUGIN]  --> %s\n", name)
+		log.Infof("[PLUGIN]  --> %s", name)
 
 		wg.Add(1)
 
@@ -60,15 +61,15 @@ func ParseData(person *structs.PersonMetrics) {
 			defer wg.Done()
 
 			if !p.ParseData(person) {
-				log.Println("[PLUGIN]  !-> FAILED")
+				log.Infoln("[PLUGIN]  !-> FAILED")
 				return
 			}
 
-			log.Println("[PLUGIN]  *-> success")
+			log.Infoln("[PLUGIN]  *-> success")
 		}(plugin)
 	}
 
 	wg.Wait()
 
-	log.Println("[PLUGIN] All plugins parsed data.")
+	log.Infoln("[PLUGIN] All plugins parsed data.")
 }

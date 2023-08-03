@@ -3,8 +3,9 @@ package plugins
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/jovandeginste/medisana-bs/structs"
@@ -42,10 +43,10 @@ func (plugin MQTT) Initialize(c structs.Config) structs.Plugin {
 
 	plugin = p
 
-	log.Println("[PLUGIN MQTT] I am the MQTT plugin")
-	log.Printf("[PLUGIN MQTT]   - Model: %s\n", plugin.model)
-	log.Printf("[PLUGIN MQTT]   - Host: %s\n", plugin.Host)
-	log.Printf("[PLUGIN MQTT]   - Username: %s\n", plugin.Username)
+	log.Debugln("[PLUGIN MQTT] I am the MQTT plugin")
+	log.Debugf("[PLUGIN MQTT]   - Model: %s", plugin.model)
+	log.Debugf("[PLUGIN MQTT]   - Host: %s", plugin.Host)
+	log.Debugf("[PLUGIN MQTT]   - Username: %s", plugin.Username)
 
 	return plugin
 }
@@ -115,7 +116,7 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 			return err
 		}
 
-		log.Printf("[PLUGIN MQTT] Publishing Auto Discovery for %s to %s", measurement["scale_value"], adTopic)
+		log.Tracef("[PLUGIN MQTT] Publishing Auto Discovery for %s to %s", measurement["scale_value"], adTopic)
 
 		if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
 			return token.Error()
@@ -131,13 +132,15 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 }
 
 func (plugin MQTT) ParseData(person *structs.PersonMetrics) bool {
+	log.Infoln("[PLUGIN MQTT] The MQTT plugin is parsing new data")
+
 	if err := plugin.broadcastAutoDiscover(person); err != nil {
-		log.Printf("[PLUGIN MQTT] Error: %s", err)
+		log.Errorf("[PLUGIN MQTT] Error: %s", err)
 		return false
 	}
 
 	if err := plugin.sendLastMetric(person); err != nil {
-		log.Printf("[PLUGIN MQTT] Error: %s", err)
+		log.Errorf("[PLUGIN MQTT] Error: %s", err)
 		return false
 	}
 
@@ -159,7 +162,7 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 		return err
 	}
 
-	log.Printf("[PLUGIN MQTT] Publishing measurement for %s to %s", identifier, adTopic)
+	log.Infof("[PLUGIN MQTT] Publishing measurement for %s to %s", identifier, adTopic)
 
 	if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()

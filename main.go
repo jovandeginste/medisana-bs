@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/jovandeginste/medisana-bs/plugins"
 	"github.com/jovandeginste/medisana-bs/structs"
@@ -13,15 +13,19 @@ var (
 )
 
 func main() {
-	log.Println("[MAIN] Initializing Bluetooth Scale monitor")
+	log.SetLevel(log.DebugLevel)
+
+	log.Infoln("[MAIN] Initializing Bluetooth Scale monitor")
 
 	config = ReadConfig("config.toml")
 
 	plugins.Initialize(config)
+
 	metricChan = make(chan *structs.PartialMetric, 2)
+
 	go MetricParser()
 
-	log.Println("[MAIN] Starting Bluetooth Scale monitor")
+	log.Infoln("[MAIN] Starting Bluetooth Scale monitor")
 
 	if config.Fakeit {
 		FakeBluetooth()

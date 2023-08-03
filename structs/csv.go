@@ -7,32 +7,43 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // ImportCsv load a csv file for a PersonID
-func ImportCsv(person int) (result BodyMetrics) {
+func ImportCsv(person int) BodyMetrics {
 	csvFile := "csv/" + strconv.Itoa(person) + ".csv"
 	if _, err := os.Stat(csvFile); os.IsNotExist(err) {
-		return
+		return nil
 	}
 
 	// Load a TXT file.
-	f, _ := os.Open(csvFile)
+	f, err := os.Open(csvFile)
+	if err != nil {
+		return nil
+	}
+
+	var result BodyMetrics
 
 	// Create a new reader.
 	r := csv.NewReader(bufio.NewReader(f))
+
 	for {
 		var w BodyMetric
-		err := unmarshal(r, &w)
-		if err == io.EOF {
-			break
+
+		if err := unmarshal(r, &w); err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			log.Fatalf("[IMPORT CSV] Error importing file: %s", err)
 		}
-		if err != nil {
-			panic(err)
-		}
+
 		result = append(result, w)
 	}
-	return
+
+	return result
 }
 
 func unmarshal(reader *csv.Reader, v interface{}) error {
@@ -40,12 +51,15 @@ func unmarshal(reader *csv.Reader, v interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	s := reflect.ValueOf(v).Elem()
 	if s.NumField() != len(record) {
 		return &FieldMismatch{s.NumField(), len(record)}
 	}
+
 	for i := 0; i < s.NumField(); i++ {
 		f := s.Field(i)
+
 		switch f.Type().String() {
 		case "string":
 			f.SetString(record[i])
@@ -54,17 +68,20 @@ func unmarshal(reader *csv.Reader, v interface{}) error {
 			if err != nil {
 				return err
 			}
+
 			f.SetInt(ival)
 		case "float32":
 			ival, err := strconv.ParseFloat(record[i], 32)
 			if err != nil {
 				return err
 			}
+
 			f.SetFloat(ival)
 		default:
 			return &UnsupportedType{f.Type().String()}
 		}
 	}
+
 	return nil
 }
 
