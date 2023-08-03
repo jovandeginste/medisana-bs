@@ -18,7 +18,11 @@ func MetricParser() {
 	for i := range allPersons {
 		allPersons[i] = &structs.PersonMetrics{Person: i + 1, BodyMetrics: make(map[int]structs.BodyMetric)}
 		allPersons[i].ImportBodyMetrics(structs.ImportCsv(i + 1))
-		allPersons[i].Name = config.People[fmt.Sprintf("%d", i+1)].Name
+
+		p, found := config.People[fmt.Sprintf("%d", i+1)]
+		if found {
+			allPersons[i].Name = p.Name
+		}
 	}
 
 	syncChan := make(chan bool)

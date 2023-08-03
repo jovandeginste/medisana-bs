@@ -29,7 +29,6 @@ type Mail struct {
 
 // MailRecipient contains a person name, and a list of addresses to send updates to
 type MailRecipient struct {
-	Name    string
 	Address []string
 }
 
@@ -122,13 +121,13 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) { //nolint:funlen
 	msg.WriteString("\n")
 
 	parameters := struct {
-		Name     string
-		PersonID int
-		Metrics  map[int]structs.AnnotatedBodyMetric
+		PersonName string
+		PersonID   int
+		Metrics    map[int]structs.AnnotatedBodyMetric
 	}{
-		Name:     recipient.Name,
-		PersonID: personID,
-		Metrics:  lastMetrics,
+		PersonName: person.Name,
+		PersonID:   personID,
+		Metrics:    lastMetrics,
 	}
 
 	body, err := parseTemplate(plugin.TemplateFile, parameters)

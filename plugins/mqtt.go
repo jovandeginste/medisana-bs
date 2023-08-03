@@ -123,7 +123,7 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 		}
 		defer plugin.client.Disconnect(250)
 
-		if token := plugin.client.Publish(adTopic, 1, false, j); token.Wait() && token.Error() != nil {
+		if token := plugin.client.Publish(adTopic, 1, true, j); token.Wait() && token.Error() != nil {
 			return token.Error()
 		}
 	}
@@ -169,7 +169,7 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 	}
 	defer plugin.client.Disconnect(250)
 
-	if token := plugin.client.Publish(adTopic, 1, false, j); token.Wait() && token.Error() != nil {
+	if token := plugin.client.Publish(adTopic, 1, true, j); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 
