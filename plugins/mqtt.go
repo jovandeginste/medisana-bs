@@ -117,13 +117,14 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 		}
 
 		log.Tracef("[PLUGIN MQTT] Publishing Auto Discovery for %s to %s", measurement["scale_value"], adTopic)
+		log.Tracef("[PLUGIN MQTT] Payload: %s", j)
 
 		if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
 			return token.Error()
 		}
 		defer plugin.client.Disconnect(250)
 
-		if token := plugin.client.Publish(adTopic, 1, true, j); token.Wait() && token.Error() != nil {
+		if token := plugin.client.Publish(adTopic, 1, false, j); token.Wait() && token.Error() != nil {
 			return token.Error()
 		}
 	}
@@ -169,7 +170,7 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 	}
 	defer plugin.client.Disconnect(250)
 
-	if token := plugin.client.Publish(adTopic, 1, true, j); token.Wait() && token.Error() != nil {
+	if token := plugin.client.Publish(adTopic, 1, false, j); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 
