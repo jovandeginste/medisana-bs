@@ -2,6 +2,10 @@
 ## explicit; go 1.16
 github.com/BurntSushi/toml
 github.com/BurntSushi/toml/internal
+# github.com/eclipse/paho.mqtt.golang v1.2.0
+## explicit
+github.com/eclipse/paho.mqtt.golang
+github.com/eclipse/paho.mqtt.golang/packets
 # github.com/fatih/structs v1.1.0
 ## explicit
 github.com/fatih/structs
@@ -44,6 +48,11 @@ github.com/sirupsen/logrus
 # github.com/tinygo-org/cbgo v0.0.4
 ## explicit; go 1.14
 github.com/tinygo-org/cbgo
+# golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
+## explicit; go 1.17
+golang.org/x/net/internal/socks
+golang.org/x/net/proxy
+golang.org/x/net/websocket
 # golang.org/x/sys v0.10.0
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader

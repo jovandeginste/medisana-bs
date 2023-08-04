@@ -1,14 +1,10 @@
 /*
- * Copyright (c) 2021 IBM Corp and others.
+ * Copyright (c) 2014 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v2.0
- * and Eclipse Distribution License v1.0 which accompany this distribution.
- *
- * The Eclipse Public License is available at
- *    https://www.eclipse.org/legal/epl-2.0/
- * and the Eclipse Distribution License is available at
- *   http://www.eclipse.org/org/documents/edl-v10.php.
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
  *    Allan Stockdill-Mander
@@ -35,24 +31,8 @@ type PacketAndToken struct {
 // Token defines the interface for the tokens used to indicate when
 // actions have completed.
 type Token interface {
-	// Wait will wait indefinitely for the Token to complete, ie the Publish
-	// to be sent and confirmed receipt from the broker.
 	Wait() bool
-
-	// WaitTimeout takes a time.Duration to wait for the flow associated with the
-	// Token to complete, returns true if it returned before the timeout or
-	// returns false if the timeout occurred. In the case of a timeout the Token
-	// does not have an error set in case the caller wishes to wait again.
 	WaitTimeout(time.Duration) bool
-
-	// Done returns a channel that is closed when the flow associated
-	// with the Token completes. Clients should call Error after the
-	// channel is closed to check if the flow completed successfully.
-	//
-	// Done is provided for use in select statements. Simple use cases may
-	// use Wait or WaitTimeout.
-	Done() <-chan struct{}
-
 	Error() error
 }
 
@@ -72,14 +52,21 @@ type baseToken struct {
 	err      error
 }
 
-// Wait implements the Token Wait method.
+// Wait will wait indefinitely for the Token to complete, ie the Publish
+// to be sent and confirmed receipt from the broker
 func (b *baseToken) Wait() bool {
 	<-b.complete
 	return true
 }
 
-// WaitTimeout implements the Token WaitTimeout method.
+// WaitTimeout takes a time.Duration to wait for the flow associated with the
+// Token to complete, returns true if it returned before the timeout or
+// returns false if the timeout occurred. In the case of a timeout the Token
+// does not have an error set in case the caller wishes to wait again
 func (b *baseToken) WaitTimeout(d time.Duration) bool {
+	b.m.Lock()
+	defer b.m.Unlock()
+
 	timer := time.NewTimer(d)
 	select {
 	case <-b.complete:
@@ -91,11 +78,6 @@ func (b *baseToken) WaitTimeout(d time.Duration) bool {
 	}
 
 	return false
-}
-
-// Done implements the Token Done method.
-func (b *baseToken) Done() <-chan struct{} {
-	return b.complete
 }
 
 func (b *baseToken) flowComplete() {
@@ -143,7 +125,7 @@ type ConnectToken struct {
 	sessionPresent bool
 }
 
-// ReturnCode returns the acknowledgement code in the connack sent
+// ReturnCode returns the acknowlegement code in the connack sent
 // in response to a Connect()
 func (c *ConnectToken) ReturnCode() byte {
 	c.m.RLock()
@@ -178,7 +160,6 @@ type SubscribeToken struct {
 	baseToken
 	subs      []string
 	subResult map[string]byte
-	messageID uint16
 }
 
 // Result returns a map of topics that were subscribed to along with
@@ -194,7 +175,6 @@ func (s *SubscribeToken) Result() map[string]byte {
 // required to provide information about calls to Unsubscribe()
 type UnsubscribeToken struct {
 	baseToken
-	messageID uint16
 }
 
 // DisconnectToken is an extension of Token containing the extra fields

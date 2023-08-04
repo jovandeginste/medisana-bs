@@ -1,14 +1,10 @@
 /*
- * Copyright (c) 2021 IBM Corp and others.
+ * Copyright (c) 2013 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v2.0
- * and Eclipse Distribution License v1.0 which accompany this distribution.
- *
- * The Eclipse Public License is available at
- *    https://www.eclipse.org/legal/epl-2.0/
- * and the Eclipse Distribution License is available at
- *   http://www.eclipse.org/org/documents/edl-v10.php.
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
  *    Seth Hoenig
@@ -105,7 +101,7 @@ func (store *FileStore) Get(key string) packets.ControlPacket {
 	store.RLock()
 	defer store.RUnlock()
 	if !store.opened {
-		ERROR.Println(STR, "trying to use file store, but not open")
+		ERROR.Println(STR, "Trying to use file store, but not open")
 		return nil
 	}
 	filepath := fullpath(store.directory, key)
@@ -121,16 +117,14 @@ func (store *FileStore) Get(key string) packets.ControlPacket {
 	if rerr != nil {
 		newpath := corruptpath(store.directory, key)
 		WARN.Println(STR, "corrupted file detected:", rerr.Error(), "archived at:", newpath)
-		if err := os.Rename(filepath, newpath); err != nil {
-			ERROR.Println(STR, err)
-		}
+		os.Rename(filepath, newpath)
 		return nil
 	}
 	return msg
 }
 
 // All will provide a list of all of the keys associated with messages
-// currently residing in the FileStore.
+// currenly residing in the FileStore.
 func (store *FileStore) All() []string {
 	store.RLock()
 	defer store.RUnlock()
@@ -162,7 +156,7 @@ func (store *FileStore) all() []string {
 	var files fileInfos
 
 	if !store.opened {
-		ERROR.Println(STR, "trying to use file store, but not open")
+		ERROR.Println(STR, "Trying to use file store, but not open")
 		return nil
 	}
 
@@ -172,7 +166,7 @@ func (store *FileStore) all() []string {
 	for _, f := range files {
 		DEBUG.Println(STR, "file in All():", f.Name())
 		name := f.Name()
-		if len(name) < len(msgExt) || name[len(name)-len(msgExt):] != msgExt {
+		if name[len(name)-4:len(name)] != msgExt {
 			DEBUG.Println(STR, "skipping file, doesn't have right extension: ", name)
 			continue
 		}
@@ -185,7 +179,7 @@ func (store *FileStore) all() []string {
 // lockless
 func (store *FileStore) del(key string) {
 	if !store.opened {
-		ERROR.Println(STR, "trying to use file store, but not open")
+		ERROR.Println(STR, "Trying to use file store, but not open")
 		return
 	}
 	DEBUG.Println(STR, "store del filepath:", store.directory)

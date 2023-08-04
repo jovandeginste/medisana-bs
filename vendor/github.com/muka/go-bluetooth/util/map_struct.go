@@ -9,6 +9,7 @@ import (
 )
 
 func AssignMapVariantToInterface(mapVal reflect.Value, mapVariant reflect.Value) (bool, error) {
+
 	if mapVal.Type().Kind() != reflect.Map {
 		return false, nil
 	}
@@ -62,11 +63,12 @@ func AssignMapVariantToInterface(mapVal reflect.Value, mapVariant reflect.Value)
 }
 
 func mapStructField(obj interface{}, name string, value dbus.Variant) error {
+
 	structValue := reflect.ValueOf(obj).Elem()
 	structFieldValue := structValue.FieldByName(name)
 
 	if !structFieldValue.IsValid() {
-		// log.Warnf("MapToStruct: invalid field detected %T.%s", obj, name)
+		log.Warnf("MapToStruct: invalid field detected %T.%s", obj, name)
 		return nil
 	}
 
