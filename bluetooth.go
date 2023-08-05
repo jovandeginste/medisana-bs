@@ -120,13 +120,13 @@ func explore(p *bluetooth.Device) {
 					log.Errorf("[BLUETOOTH] Error while writing command: %+v\n", err)
 					continue
 				}
+
+				time.Sleep(config.Sub.AsTimeDuration())
 			}
 
 			log.Tracef("[BLUETOOTH] done.")
 		}
 	}
-
-	time.Sleep(config.Sub.AsTimeDuration())
 }
 
 func generateTime() []byte {
