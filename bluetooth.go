@@ -33,10 +33,10 @@ func StartBluetooth() { //nolint:funlen
 		return strings.EqualFold(a.Addr().String(), config.DeviceID)
 	}
 
-	ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
-
 	for {
 		log.Infoln("[BLUETOOTH] Starting scan...")
+
+		ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
 
 		cln, err := ble.Connect(ctx, filter)
 		if err != nil {
