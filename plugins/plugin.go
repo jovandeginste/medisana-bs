@@ -57,16 +57,16 @@ func ParseData(person *structs.PersonMetrics) {
 
 		wg.Add(1)
 
-		go func(p structs.Plugin) {
+		go func(p structs.Plugin, name string) {
 			defer wg.Done()
 
 			if !p.ParseData(person) {
-				log.Infoln("[PLUGIN]  !-> FAILED")
+				log.Infof("[PLUGIN <%s>]  !-> FAILED", name)
 				return
 			}
 
-			log.Infoln("[PLUGIN]  *-> success")
-		}(plugin)
+			log.Infof("[PLUGIN <%s>]  *-> success", name)
+		}(plugin, name)
 	}
 
 	wg.Wait()
@@ -76,7 +76,7 @@ func ParseData(person *structs.PersonMetrics) {
 
 // InitializeData will send signal to all plugins that the data was initialized
 func InitializeData(person *structs.PersonMetrics) {
-	log.Infoln("[PLUGIN] Sending initial data to all plugins")
+	log.Infof("[PLUGIN] Sending initial data for %d (%s) to all plugins", person.Person, person.Name)
 
 	var wg sync.WaitGroup
 
@@ -85,16 +85,16 @@ func InitializeData(person *structs.PersonMetrics) {
 
 		wg.Add(1)
 
-		go func(p structs.Plugin) {
+		go func(p structs.Plugin, name string) {
 			defer wg.Done()
 
 			if !p.InitializeData(person) {
-				log.Infoln("[PLUGIN]  !-> FAILED")
+				log.Infof("[PLUGIN <%s>]  !-> FAILED", name)
 				return
 			}
 
-			log.Infoln("[PLUGIN]  *-> success")
-		}(plugin)
+			log.Infof("[PLUGIN <%s>]  *-> success", name)
+		}(plugin, name)
 	}
 
 	wg.Wait()
