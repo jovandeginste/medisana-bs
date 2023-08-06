@@ -5,7 +5,7 @@ Wants=network-online.target systemd-networkd-wait-online.service hciuart.service
 
 [Service]
 WorkingDirectory=/opt/medisana-bs
-ExecStartPre=//usr/bin/btmgmt le on
+ExecStartPre=/usr/bin/btmgmt le on
 ExecStart=/opt/medisana-bs/medisana-bs.arm6
 TimeoutStopSec=1s
 StartLimitInterval=20
