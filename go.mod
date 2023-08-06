@@ -4,14 +4,15 @@ go 1.19
 
 require (
 	github.com/BurntSushi/toml v1.3.2
-	github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8
 	github.com/eclipse/paho.mqtt.golang v1.4.3
+	github.com/go-ble/ble v0.0.0-20230130210458-dd4b07d15402
 	github.com/gocarina/gocsv v0.0.0-20230616125104-99d496ca653d
 	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/net v0.12.0
 )
 
 require (
+	github.com/JuulLabs-OSS/cbgo v0.0.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect

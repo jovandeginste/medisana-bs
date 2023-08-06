@@ -7,8 +7,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/currantlabs/ble"
-	"github.com/currantlabs/ble/examples/lib/dev"
+	"github.com/go-ble/ble"
+	"github.com/go-ble/ble/examples/lib/dev"
 	"golang.org/x/net/context"
 )
 
@@ -30,7 +30,7 @@ func StartBluetooth() { //nolint:funlen
 	ble.SetDefaultDevice(d)
 
 	filter := func(a ble.Advertisement) bool {
-		return strings.EqualFold(a.Address().String(), config.DeviceID)
+		return strings.EqualFold(a.Addr().String(), config.DeviceID)
 	}
 
 	for {
@@ -47,16 +47,16 @@ func StartBluetooth() { //nolint:funlen
 		// Normally, the connection is disconnected by us after our exploration.
 		// However, it can be asynchronously disconnected by the remote peripheral.
 		// So we wait(detect) the disconnection in the go routine.
-		go func() {
+		go func(cln ble.Client) {
 			select {
 			case <-cln.Disconnected():
-				log.Infof("[BLUETOOTH] [ %s ] is disconnected ", cln.Address())
+				log.Infof("[BLUETOOTH] [ %s ] is disconnected ", cln.Addr())
 			case <-time.After(config.Sub.AsTimeDuration()):
-				log.Infof("[BLUETOOTH] [ %s ] timed out", cln.Address())
+				log.Infof("[BLUETOOTH] [ %s ] timed out", cln.Addr())
 			}
-		}()
+		}(cln)
 
-		log.Infof("[BLUETOOTH] [ %s ] is connected ...", cln.Address())
+		log.Infof("[BLUETOOTH] [ %s ] is connected ...", cln.Addr())
 		log.Infoln("[BLUETOOTH] Discovering profile...")
 
 		p, err := cln.DiscoverProfile(true)
@@ -76,7 +76,7 @@ func StartBluetooth() { //nolint:funlen
 		time.Sleep(config.Sub.AsTimeDuration())
 
 		// Disconnect the connection. (On OS X, this might take a while.)
-		log.Infof("[BLUETOOTH] Disconnecting [ %s ]... (this might take up to few seconds on OS X)", cln.Address())
+		log.Infof("[BLUETOOTH] Disconnecting [ %s ]... (this might take up to few seconds on OS X)", cln.Addr())
 
 		showError(cln.ClearSubscriptions())
 		showError(cln.CancelConnection())

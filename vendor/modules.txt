@@ -2,23 +2,26 @@
 ## explicit; go 1.16
 github.com/BurntSushi/toml
 github.com/BurntSushi/toml/internal
-# github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8
-## explicit
-github.com/currantlabs/ble
-github.com/currantlabs/ble/darwin
-github.com/currantlabs/ble/examples/lib/dev
-github.com/currantlabs/ble/linux
-github.com/currantlabs/ble/linux/adv
-github.com/currantlabs/ble/linux/att
-github.com/currantlabs/ble/linux/gatt
-github.com/currantlabs/ble/linux/hci
-github.com/currantlabs/ble/linux/hci/cmd
-github.com/currantlabs/ble/linux/hci/evt
-github.com/currantlabs/ble/linux/hci/socket
+# github.com/JuulLabs-OSS/cbgo v0.0.1
+## explicit; go 1.14
+github.com/JuulLabs-OSS/cbgo
 # github.com/eclipse/paho.mqtt.golang v1.4.3
 ## explicit; go 1.18
 github.com/eclipse/paho.mqtt.golang
 github.com/eclipse/paho.mqtt.golang/packets
+# github.com/go-ble/ble v0.0.0-20230130210458-dd4b07d15402
+## explicit; go 1.13
+github.com/go-ble/ble
+github.com/go-ble/ble/darwin
+github.com/go-ble/ble/examples/lib/dev
+github.com/go-ble/ble/linux
+github.com/go-ble/ble/linux/adv
+github.com/go-ble/ble/linux/att
+github.com/go-ble/ble/linux/gatt
+github.com/go-ble/ble/linux/hci
+github.com/go-ble/ble/linux/hci/cmd
+github.com/go-ble/ble/linux/hci/evt
+github.com/go-ble/ble/linux/hci/socket
 # github.com/gocarina/gocsv v0.0.0-20230616125104-99d496ca653d
 ## explicit; go 1.13
 github.com/gocarina/gocsv

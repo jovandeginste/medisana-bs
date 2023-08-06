@@ -10,7 +10,7 @@ import (
 	"github.com/jovandeginste/medisana-bs/structs"
 )
 
-var allPersons = []*structs.PersonMetrics{}
+var allPersons = make([]*structs.PersonMetrics, 8)
 
 // MetricParser will initialize the Persons from csv and parse incoming metrics
 func MetricParser() {
@@ -26,7 +26,7 @@ func MetricParser() {
 
 		plugins.InitializeData(p)
 
-		allPersons = append(allPersons, p)
+		allPersons[c.ID] = p
 	}
 
 	syncChan := make(chan bool)
@@ -45,7 +45,7 @@ func MetricParser() {
 }
 
 func getPersonMetrics(personID int) *structs.PersonMetrics {
-	return allPersons[personID-1]
+	return allPersons[personID]
 }
 
 func updatePerson(update structs.Person) {
@@ -131,11 +131,13 @@ func debounce(lull time.Duration, in chan bool) {
 		case <-in:
 		case <-time.Tick(lull):
 			for _, person := range allPersons {
-				if person.Updated {
-					log.Infof("[METRIC PARSER] Person %d (%s) was updated -- calling all plugins.", person.Person, person.Name)
-					plugins.ParseData(person)
-					person.Updated = false
+				if person == nil || !person.Updated {
+					continue
 				}
+
+				log.Infof("[METRIC PARSER] Person %d (%s) was updated -- calling all plugins.", person.Person, person.Name)
+				plugins.ParseData(person)
+				person.Updated = false
 			}
 		}
 	}
