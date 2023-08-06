@@ -90,6 +90,7 @@ type PartialMetric struct {
 type Plugin interface {
 	Initialize(c Config) Plugin
 	ParseData(person *PersonMetrics) bool
+	InitializeData(person *PersonMetrics) bool
 }
 
 // Config contains the configuration for the application
@@ -106,7 +107,7 @@ type Config struct {
 }
 
 type PersonConfig struct {
-	Name string
+	ID int
 }
 
 // PluginConfig contains any possible Plugin configuration

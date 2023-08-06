@@ -124,7 +124,7 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 		}
 		defer plugin.client.Disconnect(250)
 
-		if token := plugin.client.Publish(adTopic, 1, false, j); token.Wait() && token.Error() != nil {
+		if token := plugin.client.Publish(adTopic, 1, true, j); token.Wait() && token.Error() != nil {
 			return token.Error()
 		}
 	}
@@ -134,11 +134,6 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 
 func (plugin MQTT) ParseData(person *structs.PersonMetrics) bool {
 	log.Infoln("[PLUGIN MQTT] The MQTT plugin is parsing new data")
-
-	if err := plugin.broadcastAutoDiscover(person); err != nil {
-		log.Errorf("[PLUGIN MQTT] Error: %s", err)
-		return false
-	}
 
 	if err := plugin.sendLastMetric(person); err != nil {
 		log.Errorf("[PLUGIN MQTT] Error: %s", err)
@@ -170,9 +165,23 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 	}
 	defer plugin.client.Disconnect(250)
 
-	if token := plugin.client.Publish(adTopic, 1, false, j); token.Wait() && token.Error() != nil {
+	if token := plugin.client.Publish(adTopic, 1, true, j); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 
 	return nil
+}
+
+func (plugin MQTT) InitializeData(person *structs.PersonMetrics) bool {
+	if err := plugin.broadcastAutoDiscover(person); err != nil {
+		log.Errorf("[PLUGIN MQTT] Error: %s", err)
+		return false
+	}
+
+	if err := plugin.sendLastMetric(person); err != nil {
+		log.Errorf("[PLUGIN MQTT] Error: %s", err)
+		return false
+	}
+
+	return true
 }

@@ -70,3 +70,7 @@ func createCsvDir(file string) {
 		}
 	}
 }
+
+func (plugin Csv) InitializeData(_ *structs.PersonMetrics) bool {
+	return true
+}

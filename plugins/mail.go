@@ -165,3 +165,7 @@ func parseTemplate(templateFileName string, data interface{}) (string, error) {
 
 	return result, nil
 }
+
+func (plugin Mail) InitializeData(_ *structs.PersonMetrics) bool {
+	return true
+}

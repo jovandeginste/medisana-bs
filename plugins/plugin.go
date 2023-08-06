@@ -73,3 +73,31 @@ func ParseData(person *structs.PersonMetrics) {
 
 	log.Infoln("[PLUGIN] All plugins parsed data.")
 }
+
+// InitializeData will send signal to all plugins that the data was initialized
+func InitializeData(person *structs.PersonMetrics) {
+	log.Infoln("[PLUGIN] Sending initial data to all plugins")
+
+	var wg sync.WaitGroup
+
+	for name, plugin := range allPlugins {
+		log.Infof("[PLUGIN]  --> %s", name)
+
+		wg.Add(1)
+
+		go func(p structs.Plugin) {
+			defer wg.Done()
+
+			if !p.InitializeData(person) {
+				log.Infoln("[PLUGIN]  !-> FAILED")
+				return
+			}
+
+			log.Infoln("[PLUGIN]  *-> success")
+		}(plugin)
+	}
+
+	wg.Wait()
+
+	log.Infoln("[PLUGIN] All plugins parsed initial data.")
+}

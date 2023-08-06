@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"time"
 
@@ -11,18 +10,23 @@ import (
 	"github.com/jovandeginste/medisana-bs/structs"
 )
 
-var allPersons = make([]*structs.PersonMetrics, 8)
+var allPersons = []*structs.PersonMetrics{}
 
 // MetricParser will initialize the Persons from csv and parse incoming metrics
 func MetricParser() {
-	for i := range allPersons {
-		allPersons[i] = &structs.PersonMetrics{Person: i + 1, BodyMetrics: make(map[int]structs.BodyMetric)}
-		allPersons[i].ImportBodyMetrics(structs.ImportCsv(i + 1))
-
-		p, found := config.People[fmt.Sprintf("%d", i+1)]
-		if found {
-			allPersons[i].Name = p.Name
+	for name, c := range config.People {
+		p := &structs.PersonMetrics{
+			Person:      c.ID,
+			Name:        name,
+			BodyMetrics: make(map[int]structs.BodyMetric),
 		}
+		p.ImportBodyMetrics(structs.ImportCsv(c.ID))
+
+		log.Debugf("[METRIC PARSER] Imported person %d (%s) with %d metrics", c.ID, p.Name, len(p.BodyMetrics))
+
+		plugins.InitializeData(p)
+
+		allPersons = append(allPersons, p)
 	}
 
 	syncChan := make(chan bool)
