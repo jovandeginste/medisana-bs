@@ -90,16 +90,15 @@ type HCI struct {
 	addr    net.HardwareAddr
 	txPwrLv int
 
-	// adHist and adLast track the history of past scannable advertising packets.
+	// adHist tracks the history of past scannable advertising packets.
 	// Controller delivers AD(Advertising Data) and SR(Scan Response) separately
 	// through HCI. Upon receiving an AD, no matter it's scannable or not, we
 	// pass a Advertisement (AD only) to advHandler immediately.
 	// Upon receiving a SR, we search the AD history for the AD from the same
 	// device, and pass the Advertisiement (AD+SR) to advHandler.
-	// The adHist and adLast are allocated in the Scan().
+	// The adHist is allocated in the Scan().
 	advHandler ble.AdvHandler
-	adHist     []*Advertisement
-	adLast     int
+	adHist     map[string]*Advertisement
 
 	// Host to Controller Data Flow Control Packet-based Data flow control for LE-U [Vol 2, Part E, 4.1.1]
 	// Minimum 27 bytes. 4 bytes of L2CAP Header, and 23 bytes Payload from upper layer (ATT)
@@ -303,7 +302,7 @@ func (h *HCI) sktLoop() {
 		n, err := h.skt.Read(b)
 		if n == 0 || err != nil {
 			if err == io.EOF {
-				h.err = err //callers depend on detecting io.EOF, don't wrap it.
+				h.err = err // callers depend on detecting io.EOF, don't wrap it.
 			} else {
 				h.err = fmt.Errorf("skt: %s", err)
 			}
@@ -408,33 +407,22 @@ func (h *HCI) handleLEAdvertisingReport(b []byte) error {
 			fallthrough
 		case evtTypAdvScanInd:
 			a = newAdvertisement(e, i)
-			h.adHist[h.adLast] = a
-			h.adLast++
-			if h.adLast == len(h.adHist) {
-				h.adLast = 0
-			}
+			h.adHist[a.Addr().String()] = a
 		case evtTypScanRsp:
 			sr := newAdvertisement(e, i)
-			for idx := h.adLast - 1; idx != h.adLast; idx-- {
-				if idx == -1 {
-					idx = len(h.adHist) - 1
-				}
-				if h.adHist[idx] == nil {
-					break
-				}
-				if h.adHist[idx].Addr().String() == sr.Addr().String() {
-					h.adHist[idx].setScanResponse(sr)
-					a = h.adHist[idx]
-					break
-				}
-			}
-			// Got a SR without having received an associated AD before?
-			if a == nil {
+
+			e, found := h.adHist[sr.Addr().String()]
+			if !found {
+				// Got a SR without having received an associated AD before?
 				return fmt.Errorf("received scan response %s with no associated Advertising Data packet", sr.Addr())
 			}
+
+			a = e
+			a.setScanResponse(sr)
 		default:
 			a = newAdvertisement(e, i)
 		}
+
 		go h.advHandler(a)
 	}
 
@@ -588,9 +576,8 @@ func (h *HCI) handleLELongTermKeyRequest(b []byte) error {
 }
 
 func (h *HCI) setAllowedCommands(n int) {
-
-	//hard-coded limit to command queue depth
-	//matches make(chan []byte, 16) in NewHCI
+	// hard-coded limit to command queue depth
+	// matches make(chan []byte, 16) in NewHCI
 	// TODO make this a constant, decide correct size
 	if n > 16 {
 		n = 16
