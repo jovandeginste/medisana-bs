@@ -72,7 +72,7 @@ func StartBluetooth() { //nolint:funlen
 		// Start the exploration.
 		explore(cln, p)
 
-		log.Infof("[BLUETOOTH] Discovery done, waiting %d seconds before disconnecting.", (config.Sub.AsTimeDuration() / 1e9))
+		log.Infof("[BLUETOOTH] Discovery done, waiting %f seconds before disconnecting.", config.Sub.AsTimeDuration().Seconds())
 		time.Sleep(config.Sub.AsTimeDuration())
 
 		// Disconnect the connection. (On OS X, this might take a while.)
