@@ -30,6 +30,14 @@ type MQTT struct {
 	client mqtt.Client
 }
 
+func (plugin MQTT) Name() string {
+	return "MQTT"
+}
+
+func (plugin MQTT) Logger() log.FieldLogger {
+	return log.WithField("plugin", plugin.Name())
+}
+
 // Initialize the Csv plugin
 func (plugin MQTT) Initialize(c structs.Config) structs.Plugin {
 	newc := c.Plugins["mqtt"]
@@ -43,10 +51,10 @@ func (plugin MQTT) Initialize(c structs.Config) structs.Plugin {
 
 	plugin = p
 
-	log.Debugln("[PLUGIN MQTT] I am the MQTT plugin")
-	log.Debugf("[PLUGIN MQTT]   - Model: %s", plugin.model)
-	log.Debugf("[PLUGIN MQTT]   - Host: %s", plugin.Host)
-	log.Debugf("[PLUGIN MQTT]   - Username: %s", plugin.Username)
+	plugin.Logger().Debugln("I am the MQTT plugin")
+	plugin.Logger().Debugf("  - Model: %s", plugin.model)
+	plugin.Logger().Debugf("  - Host: %s", plugin.Host)
+	plugin.Logger().Debugf("  - Username: %s", plugin.Username)
 
 	return plugin
 }
@@ -122,8 +130,8 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 			return err
 		}
 
-		log.Tracef("[PLUGIN MQTT] Publishing Auto Discovery for %s to %s", measurement["scale_value"], adTopic)
-		log.Tracef("[PLUGIN MQTT] Payload: %s", j)
+		plugin.Logger().Debugf("Publishing Auto Discovery for %s to %s", measurement["scale_value"], adTopic)
+		plugin.Logger().Debugf("Payload: %s", j)
 
 		if token := plugin.client.Publish(adTopic, 1, true, j); token.Wait() && token.Error() != nil {
 			return token.Error()
@@ -134,10 +142,10 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 }
 
 func (plugin MQTT) ParseData(person *structs.PersonMetrics) bool {
-	log.Infoln("[PLUGIN MQTT] The MQTT plugin is parsing new data")
+	plugin.Logger().Infoln("The MQTT plugin is parsing new data")
 
 	if err := plugin.sendLastMetric(person); err != nil {
-		log.Errorf("[PLUGIN MQTT] Error: %s", err)
+		plugin.Logger().Errorf("Error: %s", err)
 		return false
 	}
 
@@ -159,7 +167,7 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 		return err
 	}
 
-	log.Infof("[PLUGIN MQTT] Publishing measurement for %s to %s", identifier, adTopic)
+	plugin.Logger().Infof("Publishing measurement for %s to %s", identifier, adTopic)
 
 	if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
@@ -174,15 +182,15 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 }
 
 func (plugin MQTT) InitializeData(person *structs.PersonMetrics) bool {
-	log.Infof("[PLUGIN MQTT] The MQTT plugin is initializing the last data for %d (%s)", person.Person, person.Name)
+	plugin.Logger().Infof("The MQTT plugin is initializing the last data for %d (%s)", person.Person, person.Name)
 
 	if err := plugin.broadcastAutoDiscover(person); err != nil {
-		log.Errorf("[PLUGIN MQTT] Error: %s", err)
+		plugin.Logger().Errorf("Error: %s", err)
 		return false
 	}
 
 	if err := plugin.sendLastMetric(person); err != nil {
-		log.Errorf("[PLUGIN MQTT] Error: %s", err)
+		plugin.Logger().Errorf("Error: %s", err)
 		return false
 	}
 

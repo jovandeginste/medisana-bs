@@ -2,7 +2,6 @@ package main
 
 import (
 	"math"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -12,8 +11,12 @@ import (
 
 var allPersons = make([]*structs.PersonMetrics, 8)
 
-// MetricParser will initialize the Persons from csv and parse incoming metrics
-func MetricParser() {
+func metricParserLogger() log.FieldLogger {
+	return log.WithField("component", "metricparser")
+}
+
+// StartMetricParser will initialize the Persons from csv and parse incoming metrics
+func StartMetricParser() {
 	for name, c := range config.People {
 		p := &structs.PersonMetrics{
 			Person:      c.ID,
@@ -22,25 +25,23 @@ func MetricParser() {
 		}
 		p.ImportBodyMetrics(structs.ImportCsv(c.ID))
 
-		log.Debugf("[METRIC PARSER] Imported person %d (%s) with %d metrics", c.ID, p.Name, len(p.BodyMetrics))
+		metricParserLogger().Debugf("Imported person %d (%s) with %d metrics", c.ID, p.Name, len(p.BodyMetrics))
 
 		plugins.InitializeData(p)
 
 		allPersons[c.ID] = p
 	}
 
-	syncChan := make(chan bool)
+	go parseMetrics()
+}
 
-	go debounce(3*time.Second, syncChan)
-
+func parseMetrics() {
 	for {
 		partialMetric := <-metricChan
 
 		updatePerson(partialMetric.Person)
 		updateBody(partialMetric.Body)
 		updateWeight(partialMetric.Weight)
-
-		syncChan <- true
 	}
 }
 
@@ -53,7 +54,7 @@ func updatePerson(update structs.Person) {
 		return
 	}
 
-	log.Infof("[METRIC PARSER] Received person metrics: %+v", update)
+	metricParserLogger().Infof("Received person metrics: %+v", update)
 
 	person := getPersonMetrics(update.Person)
 	person.Gender = update.Gender
@@ -69,13 +70,13 @@ func updateBody(update structs.Body) {
 		return
 	}
 
-	log.Infof("[METRIC PARSER] Received body metrics: %+v", update)
+	metricParserLogger().Infof("Received body metrics: %+v", update)
 
 	person := getPersonMetrics(update.Person)
 	person.Updated = true
 
 	if _, ok := person.BodyMetrics[update.Timestamp]; !ok {
-		log.Infof("[METRIC PARSER] No body metric - creating")
+		metricParserLogger().Infof("No body metric - creating")
 
 		person.BodyMetrics[update.Timestamp] = structs.BodyMetric{}
 	}
@@ -97,13 +98,13 @@ func updateWeight(update structs.Weight) {
 		return
 	}
 
-	log.Infof("[METRIC PARSER] Received weight metrics: %+v", update)
+	metricParserLogger().Infof("Received weight metrics: %+v", update)
 
 	person := getPersonMetrics(update.Person)
 	person.Updated = true
 
 	if _, ok := person.BodyMetrics[update.Timestamp]; !ok {
-		log.Infof("[METRIC PARSER] No body metric - creating")
+		metricParserLogger().Infof("No body metric - creating")
 
 		person.BodyMetrics[update.Timestamp] = structs.BodyMetric{}
 	}
@@ -122,23 +123,17 @@ func updateWeight(update structs.Weight) {
 }
 
 func printPerson(person *structs.PersonMetrics) {
-	log.Infof("[METRIC PARSER] Person %d (%s) now has %d metrics.", person.Person, person.Name, len(person.BodyMetrics))
+	metricParserLogger().Infof("Person %d (%s) now has %d metrics.", person.Person, person.Name, len(person.BodyMetrics))
 }
 
-func debounce(lull time.Duration, in chan bool) {
-	for {
-		select {
-		case <-in:
-		case <-time.Tick(lull):
-			for _, person := range allPersons {
-				if person == nil || !person.Updated {
-					continue
-				}
-
-				log.Infof("[METRIC PARSER] Person %d (%s) was updated -- calling all plugins.", person.Person, person.Name)
-				plugins.ParseData(person)
-				person.Updated = false
-			}
+func debounce() {
+	for _, person := range allPersons {
+		if person == nil || !person.Updated {
+			continue
 		}
+
+		metricParserLogger().Infof("Person %d (%s) was updated -- calling all plugins.", person.Person, person.Name)
+		plugins.ParseData(person)
+		person.Updated = false
 	}
 }

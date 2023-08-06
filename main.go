@@ -9,27 +9,38 @@ import (
 
 var (
 	metricChan chan *structs.PartialMetric
+	personChan chan int
 	config     structs.Config
 )
+
+func mainLogger() log.FieldLogger {
+	return log.WithField("component", "main")
+}
 
 func main() {
 	log.SetLevel(log.DebugLevel)
 
-	log.Infoln("[MAIN] Initializing Bluetooth Scale monitor")
+	mainLogger().Infoln("Initializing Bluetooth Scale monitor")
 
 	config = ReadConfig("config.toml")
 
 	plugins.Initialize(config)
 
 	metricChan = make(chan *structs.PartialMetric, 2)
+	personChan = make(chan int, 2)
 
-	go MetricParser()
+	StartMetricParser()
 
-	log.Infoln("[MAIN] Starting Bluetooth Scale monitor")
+	mainLogger().Infoln("Starting Bluetooth Scale monitor")
 
+	runScanner()
+}
+
+func runScanner() {
 	if config.Fakeit {
 		FakeBluetooth()
-	} else {
-		StartBluetooth()
+		return
 	}
+
+	StartBluetooth()
 }

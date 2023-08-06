@@ -12,25 +12,33 @@ import (
 	"github.com/jovandeginste/medisana-bs/structs"
 )
 
-// Csv contains configuration for the Csv plugin
-type Csv struct {
+// CSV contains configuration for the CSV plugin
+type CSV struct {
 	Dir string
 }
 
+func (plugin CSV) Name() string {
+	return "CSV"
+}
+
+func (plugin CSV) Logger() log.FieldLogger {
+	return log.WithField("plugin", plugin.Name())
+}
+
 // Initialize the Csv plugin
-func (plugin Csv) Initialize(c structs.Config) structs.Plugin {
+func (plugin CSV) Initialize(c structs.Config) structs.Plugin {
 	newc := c.Plugins["csv"]
 	plugin.Dir = newc.Dir
 
-	log.Debugln("[PLUGIN CSV] I am the CSV plugin")
-	log.Debugf("[PLUGIN CSV]   - Dir: %s", plugin.Dir)
+	plugin.Logger().Debugln("I am the CSV plugin")
+	plugin.Logger().Debugf("  - Dir: %s", plugin.Dir)
 
 	return plugin
 }
 
 // ParseData will parse new data for a given person
-func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
-	log.Infoln("[PLUGIN CSV] The csv plugin is parsing new data")
+func (plugin CSV) ParseData(person *structs.PersonMetrics) bool {
+	plugin.Logger().Infoln("The csv plugin is parsing new data")
 
 	personID := person.Person
 	metrics := make(structs.BodyMetrics, len(person.BodyMetrics))
@@ -44,33 +52,38 @@ func (plugin Csv) ParseData(person *structs.PersonMetrics) bool {
 	sort.Sort(metrics)
 
 	csvFile := plugin.Dir + "/" + strconv.Itoa(personID) + ".csv"
-	log.Infof("[PLUGIN CSV] Writing to file '%s'.", csvFile)
-	createCsvDir(csvFile)
+	plugin.Logger().Infof("Writing to file '%s'.", csvFile)
+
+	if err := createCsvDir(csvFile); err != nil {
+		plugin.Logger().Fatalf("Could not create CSV dir: %s", err)
+	}
 
 	f, err := os.Create(csvFile)
 	if err != nil {
-		log.Errorf("[PLUGIN CSV] %#v", err)
+		plugin.Logger().Errorf("%#v", err)
 	}
 	defer f.Close()
 
 	if err := gocsv.MarshalWithoutHeaders(&metrics, f); err != nil {
-		log.Errorf("[PLUGIN CSV] %#v", err)
+		plugin.Logger().Errorf("%#v", err)
 	}
 
 	return true
 }
 
-func createCsvDir(file string) {
+func createCsvDir(file string) error {
 	path := filepath.Dir(file)
 	mode := os.FileMode(0o700)
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if mkErr := os.MkdirAll(path, mode); mkErr != nil {
-			log.Fatalf("[PLUGIN CSV] Could not create CSV dir: %s", mkErr)
+			return mkErr
 		}
 	}
+
+	return nil
 }
 
-func (plugin Csv) InitializeData(_ *structs.PersonMetrics) bool {
+func (plugin CSV) InitializeData(_ *structs.PersonMetrics) bool {
 	return true
 }

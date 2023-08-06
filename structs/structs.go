@@ -2,6 +2,8 @@ package structs
 
 import (
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // PersonMetrics has all data about a single person, including a list of measurements (body metrics)
@@ -88,9 +90,11 @@ type PartialMetric struct {
 
 // Plugin interface describes what a plugin should implement
 type Plugin interface {
+	Name() string
 	Initialize(c Config) Plugin
 	ParseData(person *PersonMetrics) bool
 	InitializeData(person *PersonMetrics) bool
+	Logger() log.FieldLogger
 }
 
 // Config contains the configuration for the application

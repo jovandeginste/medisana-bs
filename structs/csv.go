@@ -3,6 +3,8 @@ package structs
 import (
 	"bufio"
 	"encoding/csv"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"reflect"
@@ -10,6 +12,17 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
+
+var (
+	// FieldMismatch happens when the csv does not match our expectations
+	ErrCSVFieldMismatch = errors.New("line fields mismatch in CSV")
+	// UnsupportedType happens when a type is not supported
+	ErrCSVUnsupportedType = errors.New("unsupported type")
+)
+
+func importCSVLogger() log.FieldLogger {
+	return log.WithField("component", "import-csv")
+}
 
 // ImportCsv load a csv file for a PersonID
 func ImportCsv(person int) BodyMetrics {
@@ -37,7 +50,7 @@ func ImportCsv(person int) BodyMetrics {
 				break
 			}
 
-			log.Fatalf("[IMPORT CSV] Error importing file: %s", err)
+			importCSVLogger().Fatalf("Error importing file: %s", err)
 		}
 
 		result = append(result, w)
@@ -54,7 +67,7 @@ func unmarshal(reader *csv.Reader, v interface{}) error {
 
 	s := reflect.ValueOf(v).Elem()
 	if s.NumField() != len(record) {
-		return &FieldMismatch{s.NumField(), len(record)}
+		return fmt.Errorf("%w; expected %d, found %d", ErrCSVFieldMismatch, s.NumField(), len(record))
 	}
 
 	for i := 0; i < s.NumField(); i++ {
@@ -78,27 +91,9 @@ func unmarshal(reader *csv.Reader, v interface{}) error {
 
 			f.SetFloat(ival)
 		default:
-			return &UnsupportedType{f.Type().String()}
+			return fmt.Errorf("%w: %s", ErrCSVUnsupportedType, f.Type().String())
 		}
 	}
 
 	return nil
-}
-
-// FieldMismatch happens when the csv does not match our expectations
-type FieldMismatch struct {
-	expected, found int
-}
-
-func (e *FieldMismatch) Error() string {
-	return "CSV line fields mismatch. Expected " + strconv.Itoa(e.expected) + " found " + strconv.Itoa(e.found)
-}
-
-// UnsupportedType happens when a type is not supported
-type UnsupportedType struct {
-	Type string
-}
-
-func (e *UnsupportedType) Error() string {
-	return "Unsupported type: " + e.Type
 }

@@ -129,7 +129,7 @@ func decodeData(req []byte) {
 		body := decodeBody(req)
 		result.Body = body
 	default:
-		log.Warnf("[DECODE] Unhandled data encountered: [% X]", req)
+		log.WithField("component", "decode").Warnf("Unhandled data encountered: [% X]", req)
 	}
 
 	metricChan <- result
