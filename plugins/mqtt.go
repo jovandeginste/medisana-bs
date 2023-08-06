@@ -84,6 +84,12 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 	identifier := fmt.Sprintf("%s_person_%s", plugin.model, person.Name)
 	identifierLower := strings.ToLower(identifier)
 
+	if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
+		return token.Error()
+	}
+
+	defer plugin.client.Disconnect(250)
+
 	for _, measurement := range measurements {
 		measurementIdentifier := fmt.Sprintf("%s_%s", identifierLower, measurement["ha_value"])
 		device := deviceStruct{
@@ -119,14 +125,10 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 		log.Tracef("[PLUGIN MQTT] Publishing Auto Discovery for %s to %s", measurement["scale_value"], adTopic)
 		log.Tracef("[PLUGIN MQTT] Payload: %s", j)
 
-		if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
-			return token.Error()
-		}
-		defer plugin.client.Disconnect(250)
-
 		if token := plugin.client.Publish(adTopic, 1, true, j); token.Wait() && token.Error() != nil {
 			return token.Error()
 		}
+
 	}
 
 	return nil
@@ -173,6 +175,8 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 }
 
 func (plugin MQTT) InitializeData(person *structs.PersonMetrics) bool {
+	log.Infof("[PLUGIN MQTT] The MQTT plugin is initializing the last data for %d (%s)", person.Person, person.Name)
+
 	if err := plugin.broadcastAutoDiscover(person); err != nil {
 		log.Errorf("[PLUGIN MQTT] Error: %s", err)
 		return false
