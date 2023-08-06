@@ -59,7 +59,10 @@ func scan(filter ble.AdvFilter) error {
 
 	ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
 
-	log.Infoln("[BLUETOOTH] connecting...")
+	// Calculate the new timestamp by adding n seconds
+	newTimestamp := time.Now().Add(config.ScanDuration.AsTimeDuration())
+
+	log.Infof("[BLUETOOTH] connecting... I should be back by %s", newTimestamp)
 
 	cln, err := ble.Connect(ctx, filter)
 	if err != nil {
