@@ -33,14 +33,14 @@ func StartBluetooth() { //nolint:funlen
 		return strings.EqualFold(a.Addr().String(), config.DeviceID)
 	}
 
-	for {
-		ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
+	ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
 
+	for {
 		log.Infoln("[BLUETOOTH] Starting scan...")
 
 		cln, err := ble.Connect(ctx, filter)
 		if err != nil {
-			log.Errorf("[BLUETOOTH] Scan timeout: %s", err)
+			log.Warnf("[BLUETOOTH] Scan timeout: %s", err)
 			continue
 		}
 
@@ -81,7 +81,7 @@ func StartBluetooth() { //nolint:funlen
 		showError(cln.ClearSubscriptions())
 		showError(cln.CancelConnection())
 
-		time.Sleep(5 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 }
 
