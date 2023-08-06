@@ -2,7 +2,7 @@
 ## explicit; go 1.16
 github.com/BurntSushi/toml
 github.com/BurntSushi/toml/internal
-# github.com/JuulLabs-OSS/cbgo v0.0.1
+# github.com/JuulLabs-OSS/cbgo v0.0.2
 ## explicit; go 1.14
 github.com/JuulLabs-OSS/cbgo
 # github.com/eclipse/paho.mqtt.golang v1.4.3
@@ -51,15 +51,15 @@ github.com/raff/goble/xpc
 github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.7.1
 ## explicit; go 1.13
-# golang.org/x/net v0.12.0
+# golang.org/x/net v0.14.0
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sync v0.1.0
-## explicit
+# golang.org/x/sync v0.3.0
+## explicit; go 1.17
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.10.0
+# golang.org/x/sys v0.11.0
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
