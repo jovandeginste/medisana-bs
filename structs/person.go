@@ -22,6 +22,7 @@ func (person *PersonMetrics) ImportBodyMetrics(metrics []BodyMetric) {
 		bodyMetric.Bone = update.Bone
 		bodyMetric.Bmi = update.Bmi
 		bodyMetric.TimestampString = update.ToRFC3339()
+		bodyMetric.Name = person.Name
 
 		person.BodyMetrics[update.Timestamp] = bodyMetric
 	}

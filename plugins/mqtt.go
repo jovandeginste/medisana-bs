@@ -12,6 +12,7 @@ import (
 )
 
 var measurements = []map[string]string{
+	{"ha_value": "name", "scale_value": "name", "name": "Name", "icon": "card-account-details-outline", "unit": "", "state_class": ""},
 	{"ha_value": "weight", "scale_value": "weight", "name": "Weight", "icon": "scale-bathroom", "unit": "kg", "class": "weight"},
 	{"ha_value": "timestamp", "scale_value": "timestamp", "name": "Last measurement", "icon": "calendar-clock-outline", "unit": "", "class": "timestamp"},
 	{"ha_value": "calories", "scale_value": "kcal", "name": "Calories", "icon": "fire", "unit": "kcal"},
@@ -90,7 +91,7 @@ type payload struct {
 }
 
 func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
-	identifier := strings.ToLower(fmt.Sprintf("%s_person_%s", plugin.model, person.Name))
+	identifier := strings.ToLower(fmt.Sprintf("%s_person_%d", plugin.model, person.Person))
 
 	if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
@@ -138,7 +139,7 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 		plugin.Logger().Debugf("Publishing Auto Discovery for %s to %s", measurement["scale_value"], adTopic)
 		plugin.Logger().Debugf("Payload: %s", j)
 
-		if token := plugin.client.Publish(adTopic, 1, true, j); token.Wait() && token.Error() != nil {
+		if token := plugin.client.Publish(adTopic, 1, false, j); token.Wait() && token.Error() != nil {
 			return token.Error()
 		}
 	}
@@ -158,7 +159,7 @@ func (plugin MQTT) ParseData(person *structs.PersonMetrics) bool {
 }
 
 func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
-	identifier := strings.ToLower(fmt.Sprintf("%s_person_%s", plugin.model, person.Name))
+	identifier := strings.ToLower(fmt.Sprintf("%s_person_%d", plugin.model, person.Person))
 	adTopic := fmt.Sprintf("homeassistant/sensor/%s/state", identifier)
 
 	lastMetric := person.LastMetric()
@@ -179,7 +180,7 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 	}
 	defer plugin.client.Disconnect(250)
 
-	if token := plugin.client.Publish(adTopic, 1, true, j); token.Wait() && token.Error() != nil {
+	if token := plugin.client.Publish(adTopic, 1, false, j); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 

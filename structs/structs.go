@@ -24,6 +24,7 @@ type BodyMetrics []BodyMetric
 // BodyMetric is a single tuple of measurements for a given person
 type BodyMetric struct {
 	Timestamp       int     `json:"-"`
+	Name            string  `json:"name"`
 	TimestampString string  `json:"timestamp"`
 	Weight          float32 `json:"weight"`
 	Fat             float32 `json:"fat"`
