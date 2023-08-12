@@ -80,13 +80,13 @@ type deviceStruct struct {
 type payload struct {
 	Name              string       `json:"name"`
 	ValueTemplate     string       `json:"value_template"`
-	UnitOfMeasurement string       `json:"unit_of_measurement"`
+	UnitOfMeasurement string       `json:"unit_of_measurement,omitempty"`
 	Icon              string       `json:"icon"`
 	StateTopic        string       `json:"state_topic"`
 	ObjectID          string       `json:"object_id"`
 	UniqueID          string       `json:"unique_id"`
 	Device            deviceStruct `json:"device"`
-	StateClass        string       `json:"state_class"`
+	StateClass        string       `json:"state_class,omitempty"`
 	DeviceClass       string       `json:"device_class,omitempty"`
 }
 
