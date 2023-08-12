@@ -9,7 +9,6 @@ import (
 
 var (
 	metricChan chan *structs.PartialMetric
-	personChan chan int
 	config     structs.Config
 )
 
@@ -27,7 +26,6 @@ func main() {
 	plugins.Initialize(config)
 
 	metricChan = make(chan *structs.PartialMetric, 2)
-	personChan = make(chan int, 2)
 
 	StartMetricParser()
 

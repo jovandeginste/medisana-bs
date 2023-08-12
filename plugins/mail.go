@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -97,7 +96,7 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) { //nolint:funlen
 
 	for _, value := range metrics[l+1:] {
 		annotations := structs.BodyMetricAnnotations{
-			Time:        time.Unix(int64(value.Timestamp), 0),
+			Time:        value.ToTime(),
 			DeltaWeight: value.Weight - previousMetric.Weight,
 			DeltaFat:    value.Fat - previousMetric.Fat,
 			DeltaMuscle: value.Muscle - previousMetric.Muscle,

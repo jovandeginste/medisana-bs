@@ -88,6 +88,8 @@ func updateBody(update structs.Body) {
 	bodyMetric.Tbw = update.Tbw
 	bodyMetric.Muscle = update.Muscle
 	bodyMetric.Bone = update.Bone
+	bodyMetric.TimestampString = update.ToRFC3339()
+
 	person.BodyMetrics[update.Timestamp] = bodyMetric
 
 	printPerson(person)
@@ -112,6 +114,7 @@ func updateWeight(update structs.Weight) {
 	bodyMetric := person.BodyMetrics[update.Timestamp]
 	bodyMetric.Weight = update.Weight
 	bodyMetric.Timestamp = update.Timestamp
+	bodyMetric.TimestampString = update.ToRFC3339()
 
 	if bodyMetric.Weight > 0 && person.Size > 0 {
 		bodyMetric.Bmi = bodyMetric.Weight / float32(math.Pow(float64(person.Size)/100, 2))

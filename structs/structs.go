@@ -23,14 +23,23 @@ type BodyMetrics []BodyMetric
 
 // BodyMetric is a single tuple of measurements for a given person
 type BodyMetric struct {
-	Timestamp int     `json:"timestamp"`
-	Weight    float32 `json:"weight"`
-	Fat       float32 `json:"fat"`
-	Muscle    float32 `json:"muscle"`
-	Bone      float32 `json:"bone"`
-	Tbw       float32 `json:"tbw"`
-	Kcal      int     `json:"kcal"`
-	Bmi       float32 `json:"bmi"`
+	Timestamp       int     `json:"-"`
+	TimestampString string  `json:"timestamp"`
+	Weight          float32 `json:"weight"`
+	Fat             float32 `json:"fat"`
+	Muscle          float32 `json:"muscle"`
+	Bone            float32 `json:"bone"`
+	Tbw             float32 `json:"tbw"`
+	Kcal            int     `json:"kcal"`
+	Bmi             float32 `json:"bmi"`
+}
+
+func (b *BodyMetric) ToTime() time.Time {
+	return time.Unix(int64(b.Timestamp), 0)
+}
+
+func (b *BodyMetric) ToRFC3339() string {
+	return b.ToTime().Format(time.RFC3339)
 }
 
 // AnnotatedBodyMetric contains the values of BodyMetric plus some custom annotations plugins to show
@@ -69,6 +78,14 @@ type Weight struct {
 	Person    int
 }
 
+func (w *Weight) ToTime() time.Time {
+	return time.Unix(int64(w.Timestamp), 0)
+}
+
+func (w *Weight) ToRFC3339() string {
+	return w.ToTime().Format(time.RFC3339)
+}
+
 // Body contains a secondary measurements for a person
 type Body struct {
 	Valid     bool
@@ -79,6 +96,14 @@ type Body struct {
 	Tbw       float32
 	Muscle    float32
 	Bone      float32
+}
+
+func (b *Body) ToTime() time.Time {
+	return time.Unix(int64(b.Timestamp), 0)
+}
+
+func (b *Body) ToRFC3339() string {
+	return b.ToTime().Format(time.RFC3339)
 }
 
 // PartialMetric contains either type of measurement sent by the scale

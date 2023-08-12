@@ -1,6 +1,8 @@
 package structs
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // ImportBodyMetrics will import extra metrics to a person
 func (person *PersonMetrics) ImportBodyMetrics(metrics []BodyMetric) {
@@ -19,6 +21,7 @@ func (person *PersonMetrics) ImportBodyMetrics(metrics []BodyMetric) {
 		bodyMetric.Muscle = update.Muscle
 		bodyMetric.Bone = update.Bone
 		bodyMetric.Bmi = update.Bmi
+		bodyMetric.TimestampString = update.ToRFC3339()
 
 		person.BodyMetrics[update.Timestamp] = bodyMetric
 	}

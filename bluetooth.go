@@ -68,12 +68,18 @@ func scan(filter ble.AdvFilter) error {
 
 	bluetoothLogger().Infof("connecting... I should be back by %s", newTimestamp)
 
+	ch := make(chan bool, 1)
+	go checkBluetoothHangs(ch)
+
 	cln, err := ble.Connect(ctx, filter)
 	if err != nil {
+		ch <- false
 		return fmt.Errorf("scan timeout: %w", err)
 	}
 
 	defer disconnect(cln)
+
+	ch <- true
 
 	// Normally, the connection is disconnected by us after our exploration.
 	// However, it can be asynchronously disconnected by the remote peripheral.
@@ -106,6 +112,18 @@ func scan(filter ble.AdvFilter) error {
 	go debounce()
 
 	return nil
+}
+
+func checkBluetoothHangs(ch chan bool) {
+	time.Sleep(1 * time.Second)
+
+	select {
+	case <-ch:
+		bluetoothLogger().Infof("scan finished in time")
+		return
+	case <-time.After(config.ScanDuration.AsTimeDuration()):
+		bluetoothLogger().Fatal("timeout")
+	}
 }
 
 func disconnect(cln ble.Client) {

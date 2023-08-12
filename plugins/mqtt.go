@@ -13,6 +13,7 @@ import (
 
 var measurements = []map[string]string{
 	{"ha_value": "weight", "scale_value": "weight", "name": "Weight", "icon": "scale-bathroom", "unit": "kg", "class": "weight"},
+	{"ha_value": "timestamp", "scale_value": "timestamp", "name": "Last measurement", "icon": "calendar-clock-outline", "unit": "", "class": "timestamp"},
 	{"ha_value": "calories", "scale_value": "kcal", "name": "Calories", "icon": "fire", "unit": "kcal"},
 	{"ha_value": "fat", "scale_value": "fat", "name": "Fat", "icon": "account-group", "unit": "%"},
 	{"ha_value": "water", "scale_value": "tbw", "name": "Water Ratio", "icon": "water-opacity", "unit": "%"},
@@ -89,8 +90,7 @@ type payload struct {
 }
 
 func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
-	identifier := fmt.Sprintf("%s_person_%s", plugin.model, person.Name)
-	identifierLower := strings.ToLower(identifier)
+	identifier := strings.ToLower(fmt.Sprintf("%s_person_%s", plugin.model, person.Name))
 
 	if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
@@ -99,26 +99,31 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 	defer plugin.client.Disconnect(250)
 
 	for _, measurement := range measurements {
-		measurementIdentifier := fmt.Sprintf("%s_%s", identifierLower, measurement["ha_value"])
+		measurementIdentifier := fmt.Sprintf("%s_%s", identifier, measurement["ha_value"])
 		device := deviceStruct{
 			Model:        plugin.model,
-			Name:         identifierLower,
+			Name:         identifier,
 			Manufacturer: "Medisana",
-			Identifiers:  []string{identifier, identifierLower},
+			Identifiers:  []string{identifier},
 		}
 
-		adTopic := fmt.Sprintf("homeassistant/sensor/%s/%s/config", identifierLower, measurement["ha_value"])
+		adTopic := fmt.Sprintf("homeassistant/sensor/%s/%s/config", identifier, measurement["ha_value"])
 
 		adPayload := payload{
-			Name:              fmt.Sprintf("%s of %s", measurement["name"], person.Name),
+			Name:              measurement["name"],
 			ValueTemplate:     fmt.Sprintf("{{ value_json.%s }}", measurement["scale_value"]),
 			UnitOfMeasurement: measurement["unit"],
 			Icon:              "mdi:" + measurement["icon"],
-			StateTopic:        fmt.Sprintf("homeassistant/sensor/%s/state", identifierLower),
+			StateTopic:        fmt.Sprintf("homeassistant/sensor/%s/state", identifier),
 			ObjectID:          measurementIdentifier,
 			UniqueID:          measurementIdentifier,
 			Device:            device,
-			StateClass:        "measurement",
+		}
+
+		if val, ok := measurement["state_class"]; ok {
+			adPayload.StateClass = val
+		} else {
+			adPayload.StateClass = "measurement"
 		}
 
 		if val, ok := measurement["class"]; ok {
@@ -153,9 +158,8 @@ func (plugin MQTT) ParseData(person *structs.PersonMetrics) bool {
 }
 
 func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
-	identifier := fmt.Sprintf("%s_person_%s", plugin.model, person.Name)
-	identifierLower := strings.ToLower(identifier)
-	adTopic := fmt.Sprintf("homeassistant/sensor/%s/state", identifierLower)
+	identifier := strings.ToLower(fmt.Sprintf("%s_person_%s", plugin.model, person.Name))
+	adTopic := fmt.Sprintf("homeassistant/sensor/%s/state", identifier)
 
 	lastMetric := person.LastMetric()
 	if lastMetric == nil {
@@ -168,6 +172,7 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 	}
 
 	plugin.Logger().Infof("Publishing measurement for %s to %s", identifier, adTopic)
+	plugin.Logger().Infof("Payload: %s", j)
 
 	if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
