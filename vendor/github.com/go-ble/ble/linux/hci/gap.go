@@ -29,8 +29,8 @@ func (h *HCI) Scan(allowDup bool) error {
 		h.params.scanEnable.FilterDuplicates = 0
 	}
 	h.params.scanEnable.LEScanEnable = 1
-	h.adHist = map[string]*Advertisement{}
-
+	h.adHist = make([]*Advertisement, 128)
+	h.adLast = 0
 	return h.Send(&h.params.scanEnable, nil)
 }
 
@@ -86,6 +86,7 @@ func (h *HCI) AdvertiseAdv(a ble.Advertisement) error {
 		return nil
 	}
 	return h.Advertise()
+
 }
 
 // AdvertiseNameAndServices advertises device name, and specified service UUIDs.
