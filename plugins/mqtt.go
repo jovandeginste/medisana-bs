@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -195,10 +196,15 @@ func (plugin MQTT) InitializeData(person *structs.PersonMetrics) bool {
 		return false
 	}
 
-	if err := plugin.sendLastMetric(person); err != nil {
-		plugin.Logger().Errorf("Error: %s", err)
-		return false
-	}
+	go func() {
+		for {
+			if err := plugin.sendLastMetric(person); err != nil {
+				plugin.Logger().Errorf("Error: %s", err)
+			}
+
+			time.Sleep(300 * time.Second)
+		}
+	}()
 
 	return true
 }
