@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -51,7 +52,9 @@ func StartBluetooth() {
 
 	for {
 		if err := scan(filter); err != nil {
-			bluetoothLogger().Warnf("%s", err)
+			if !errors.Is(err, context.DeadlineExceeded) {
+				bluetoothLogger().Fatalf("%s", err)
+			}
 		}
 
 		time.Sleep(1 * time.Second)
@@ -115,14 +118,15 @@ func scan(filter ble.AdvFilter) error {
 }
 
 func checkBluetoothHangs(ch chan bool) {
-	time.Sleep(1 * time.Second)
+	// Add a few extra seconds head start to prevent race conditions
+	time.Sleep(10 * time.Second)
 
 	select {
 	case <-ch:
 		bluetoothLogger().Infof("scan finished in time")
 		return
 	case <-time.After(config.ScanDuration.AsTimeDuration()):
-		bluetoothLogger().Fatal("timeout")
+		bluetoothLogger().Fatal("scan did not finish in time - hardware hang?")
 	}
 }
 
