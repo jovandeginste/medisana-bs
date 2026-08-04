@@ -41,7 +41,7 @@ func (plugin MQTT) Logger() log.FieldLogger {
 	return log.WithField("plugin", plugin.Name())
 }
 
-// Initialize the Csv plugin
+// Initialize the MQTT plugin
 func (plugin MQTT) Initialize(c structs.Config) structs.Plugin {
 	newc := c.Plugins["mqtt"]
 	p := MQTT{
