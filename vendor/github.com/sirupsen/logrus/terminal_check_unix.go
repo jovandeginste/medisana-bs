@@ -1,7 +1,5 @@
-//go:build (linux || aix || zos) && !js && !wasi
-// +build linux aix zos
+// +build linux aix
 // +build !js
-// +build !wasi
 
 package logrus
 

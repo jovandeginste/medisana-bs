@@ -6,11 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"reflect"
 	"strconv"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -20,8 +19,8 @@ var (
 	ErrCSVUnsupportedType = errors.New("unsupported type")
 )
 
-func importCSVLogger() log.FieldLogger {
-	return log.WithField("component", "import-csv")
+func importCSVLogger() *slog.Logger {
+	return slog.With("component", "import-csv")
 }
 
 // ImportCsv load a csv file for a PersonID
@@ -50,7 +49,8 @@ func ImportCsv(person int) BodyMetrics {
 				break
 			}
 
-			importCSVLogger().Fatalf("Error importing file: %s", err)
+			importCSVLogger().Error("Error importing file", "err", err, "path", csvFile)
+			os.Exit(1)
 		}
 
 		result = append(result, w)

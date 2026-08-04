@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"log/slog"
 	"math"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/jovandeginste/medisana-bs/plugins"
 	"github.com/jovandeginste/medisana-bs/structs"
@@ -11,8 +11,8 @@ import (
 
 var allPersons = make([]*structs.PersonMetrics, 8)
 
-func metricParserLogger() log.FieldLogger {
-	return log.WithField("component", "metricparser")
+func metricParserLogger() *slog.Logger {
+	return slog.With("component", "metricparser")
 }
 
 // StartMetricParser will initialize the Persons from csv and parse incoming metrics
@@ -25,7 +25,7 @@ func StartMetricParser() {
 		}
 		p.ImportBodyMetrics(structs.ImportCsv(c.ID))
 
-		metricParserLogger().Debugf("Imported person %d (%s) with %d metrics", c.ID, p.Name, len(p.BodyMetrics))
+		metricParserLogger().Debug("Imported person", "person_id", c.ID, "name", p.Name, "metrics", len(p.BodyMetrics))
 
 		plugins.InitializeData(p)
 
@@ -54,7 +54,7 @@ func updatePerson(update structs.Person) {
 		return
 	}
 
-	metricParserLogger().Infof("Received person metrics: %+v", update)
+	metricParserLogger().Info("Received person metrics", "person", fmt.Sprintf("%+v", update))
 
 	person := getPersonMetrics(update.Person)
 	person.Gender = update.Gender
@@ -70,13 +70,13 @@ func updateBody(update structs.Body) {
 		return
 	}
 
-	metricParserLogger().Infof("Received body metrics: %+v", update)
+	metricParserLogger().Info("Received body metrics", "body", fmt.Sprintf("%+v", update))
 
 	person := getPersonMetrics(update.Person)
 	person.Updated = true
 
 	if _, ok := person.BodyMetrics[update.Timestamp]; !ok {
-		metricParserLogger().Infof("No body metric - creating")
+		metricParserLogger().Info("No body metric - creating")
 
 		person.BodyMetrics[update.Timestamp] = structs.BodyMetric{}
 	}
@@ -101,13 +101,13 @@ func updateWeight(update structs.Weight) {
 		return
 	}
 
-	metricParserLogger().Infof("Received weight metrics: %+v", update)
+	metricParserLogger().Info("Received weight metrics", "weight", fmt.Sprintf("%+v", update))
 
 	person := getPersonMetrics(update.Person)
 	person.Updated = true
 
 	if _, ok := person.BodyMetrics[update.Timestamp]; !ok {
-		metricParserLogger().Infof("No body metric - creating")
+		metricParserLogger().Info("No body metric - creating")
 
 		person.BodyMetrics[update.Timestamp] = structs.BodyMetric{}
 	}
@@ -128,7 +128,7 @@ func updateWeight(update structs.Weight) {
 }
 
 func printPerson(person *structs.PersonMetrics) {
-	metricParserLogger().Infof("Person %d (%s) now has %d metrics.", person.Person, person.Name, len(person.BodyMetrics))
+	metricParserLogger().Info("Person metrics updated", "person_id", person.Person, "name", person.Name, "metrics", len(person.BodyMetrics))
 }
 
 func debounce() {
@@ -137,7 +137,7 @@ func debounce() {
 			continue
 		}
 
-		metricParserLogger().Infof("Person %d (%s) was updated -- calling all plugins.", person.Person, person.Name)
+		metricParserLogger().Info("Person updated, calling all plugins", "person_id", person.Person, "name", person.Name)
 		plugins.ParseData(person)
 		person.Updated = false
 	}

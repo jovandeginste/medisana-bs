@@ -3,10 +3,9 @@ package plugins
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/jovandeginste/medisana-bs/structs"
@@ -37,8 +36,8 @@ func (plugin MQTT) Name() string {
 	return "MQTT"
 }
 
-func (plugin MQTT) Logger() log.FieldLogger {
-	return log.WithField("plugin", plugin.Name())
+func (plugin MQTT) Logger() *slog.Logger {
+	return slog.With("plugin", plugin.Name())
 }
 
 // Initialize the MQTT plugin
@@ -54,10 +53,8 @@ func (plugin MQTT) Initialize(c structs.Config) structs.Plugin {
 
 	plugin = p
 
-	plugin.Logger().Debugln("I am the MQTT plugin")
-	plugin.Logger().Debugf("  - Model: %s", plugin.model)
-	plugin.Logger().Debugf("  - Host: %s", plugin.Host)
-	plugin.Logger().Debugf("  - Username: %s", plugin.Username)
+	plugin.Logger().Debug("I am the MQTT plugin")
+	plugin.Logger().Debug("Config", "model", plugin.model, "host", plugin.Host, "username", plugin.Username)
 
 	return plugin
 }
@@ -69,6 +66,18 @@ func (plugin *MQTT) initializeClient() {
 			SetUsername(plugin.Username).
 			SetPassword(plugin.Password),
 	)
+}
+
+func (plugin MQTT) ensureConnected() error {
+	if plugin.client.IsConnected() && plugin.client.IsConnectionOpen() {
+		return nil
+	}
+
+	if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
+		return token.Error()
+	}
+
+	return nil
 }
 
 type deviceStruct struct {
@@ -94,11 +103,9 @@ type payload struct {
 func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 	identifier := strings.ToLower(fmt.Sprintf("%s_person_%d", plugin.model, person.Person))
 
-	if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
-		return token.Error()
+	if err := plugin.ensureConnected(); err != nil {
+		return err
 	}
-
-	defer plugin.client.Disconnect(250)
 
 	for _, measurement := range measurements {
 		measurementIdentifier := fmt.Sprintf("%s_%s", identifier, measurement["ha_value"])
@@ -137,8 +144,8 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 			return err
 		}
 
-		plugin.Logger().Debugf("Publishing Auto Discovery for %s to %s", measurement["scale_value"], adTopic)
-		plugin.Logger().Debugf("Payload: %s", j)
+		plugin.Logger().Debug("Publishing auto discovery", "measurement", measurement["scale_value"], "topic", adTopic)
+		plugin.Logger().Debug("Payload", "payload", string(j))
 
 		if token := plugin.client.Publish(adTopic, 1, false, j); token.Wait() && token.Error() != nil {
 			return token.Error()
@@ -149,10 +156,10 @@ func (plugin MQTT) broadcastAutoDiscover(person *structs.PersonMetrics) error {
 }
 
 func (plugin MQTT) ParseData(person *structs.PersonMetrics) bool {
-	plugin.Logger().Infoln("The MQTT plugin is parsing new data")
+	plugin.Logger().Info("The MQTT plugin is parsing new data")
 
 	if err := plugin.sendLastMetric(person); err != nil {
-		plugin.Logger().Errorf("Error: %s", err)
+		plugin.Logger().Error("Error sending last metric", "err", err)
 		return false
 	}
 
@@ -173,13 +180,12 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 		return err
 	}
 
-	plugin.Logger().Infof("Publishing measurement for %s to %s", identifier, adTopic)
-	plugin.Logger().Infof("Payload: %s", j)
+	plugin.Logger().Info("Publishing measurement", "identifier", identifier, "topic", adTopic)
+	plugin.Logger().Info("Payload", "payload", string(j))
 
-	if token := plugin.client.Connect(); token.Wait() && token.Error() != nil {
-		return token.Error()
+	if err := plugin.ensureConnected(); err != nil {
+		return err
 	}
-	defer plugin.client.Disconnect(250)
 
 	if token := plugin.client.Publish(adTopic, 1, false, j); token.Wait() && token.Error() != nil {
 		return token.Error()
@@ -189,17 +195,17 @@ func (plugin MQTT) sendLastMetric(person *structs.PersonMetrics) error {
 }
 
 func (plugin MQTT) InitializeData(person *structs.PersonMetrics) bool {
-	plugin.Logger().Infof("The MQTT plugin is initializing the last data for %d (%s)", person.Person, person.Name)
+	plugin.Logger().Info("The MQTT plugin is initializing the last data", "person_id", person.Person, "name", person.Name)
 
 	if err := plugin.broadcastAutoDiscover(person); err != nil {
-		plugin.Logger().Errorf("Error: %s", err)
+		plugin.Logger().Error("Error broadcasting auto discovery", "err", err)
 		return false
 	}
 
 	go func() {
 		for {
 			if err := plugin.sendLastMetric(person); err != nil {
-				plugin.Logger().Errorf("Error: %s", err)
+				plugin.Logger().Error("Error sending periodic metric", "err", err)
 			}
 
 			time.Sleep(300 * time.Second)

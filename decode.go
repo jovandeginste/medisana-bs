@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/binary"
+	"fmt"
+	"log/slog"
 	"math"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/jovandeginste/medisana-bs/structs"
 )
@@ -129,7 +129,7 @@ func decodeData(req []byte) {
 		body := decodeBody(req)
 		result.Body = body
 	default:
-		log.WithField("component", "decode").Warnf("Unhandled data encountered: [% X]", req)
+		slog.With("component", "decode").Warn("Unhandled data encountered", "raw", fmt.Sprintf("[% X]", req))
 	}
 
 	metricChan <- result

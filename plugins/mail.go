@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"log/slog"
 	"net/smtp"
 	"sort"
 	"strconv"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/jovandeginste/medisana-bs/structs"
 )
@@ -35,8 +34,8 @@ func (plugin Mail) Name() string {
 	return "MAIL"
 }
 
-func (plugin Mail) Logger() log.FieldLogger {
-	return log.WithField("plugin", plugin.Name())
+func (plugin Mail) Logger() *slog.Logger {
+	return slog.With("plugin", plugin.Name())
 }
 
 // Initialize the Mail plugin
@@ -47,22 +46,15 @@ func (plugin Mail) Initialize(c structs.Config) structs.Plugin {
 		newc.TemplateFile, newc.Subject, newc.Metrics,
 	}
 
-	plugin.Logger().Debugln("I am the Mail plugin")
-	plugin.Logger().Debugf("  - Server: %s", plugin.Server)
-	plugin.Logger().Debugf("  - StartTLS: %t [ To be implemented !!! ]", plugin.StartTLS)
-	plugin.Logger().Debugf("  - SenderName: %s", plugin.SenderName)
-	plugin.Logger().Debugf("  - SenderAddress: %s", plugin.SenderAddress)
-	plugin.Logger().Debugf("  - TemplateFile: %s", plugin.TemplateFile)
-	plugin.Logger().Debugf("  - Subject: %s", plugin.Subject)
-	plugin.Logger().Debugf("  - Metrics: %d", plugin.Metrics)
-	plugin.Logger().Debugf("  - Recipients: %d", len(plugin.Recipients))
+	plugin.Logger().Debug("I am the Mail plugin")
+	plugin.Logger().Debug("Config", "server", plugin.Server, "start_tls", plugin.StartTLS, "sender_name", plugin.SenderName, "sender_address", plugin.SenderAddress, "template_file", plugin.TemplateFile, "subject", plugin.Subject, "metrics", plugin.Metrics, "recipients", len(plugin.Recipients))
 
 	return plugin
 }
 
 // ParseData will parse new data for a given person
 func (plugin Mail) ParseData(person *structs.PersonMetrics) bool {
-	plugin.Logger().Infoln("The mail plugin is parsing new data")
+	plugin.Logger().Info("The mail plugin is parsing new data")
 
 	plugin.sendMail(person)
 
@@ -139,20 +131,20 @@ func (plugin Mail) sendMail(person *structs.PersonMetrics) { //nolint:funlen
 
 	body, err := parseTemplate(plugin.TemplateFile, parameters)
 	if err != nil {
-		plugin.Logger().Errorf("An error occurred: %s", err)
+		plugin.Logger().Error("Template parsing failed", "err", err)
 		return
 	}
 
 	msg.WriteString(body)
 
-	plugin.Logger().Infof("Sending mail from %s to %s...", from, to)
+	plugin.Logger().Info("Sending mail", "from", from, "to", to)
 
 	if err := smtp.SendMail(plugin.Server, auth, plugin.SenderAddress, to, []byte(msg.String())); err != nil {
-		plugin.Logger().Errorf("An error occurred: %s", err)
+		plugin.Logger().Error("Sending mail failed", "err", err)
 		return
 	}
 
-	plugin.Logger().Debugf("Message was %d bytes.", msg.Len())
+	plugin.Logger().Debug("Message sent", "bytes", msg.Len())
 }
 
 func parseTemplate(templateFileName string, data interface{}) (string, error) {

@@ -3,14 +3,13 @@ package main
 import (
 	"bufio"
 	"encoding/hex"
+	"log/slog"
 	"os"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
-func fakeBluetoothLogger() log.FieldLogger {
-	return log.WithField("component", "fake-bluetooth")
+func fakeBluetoothLogger() *slog.Logger {
+	return slog.With("component", "fake-bluetooth")
 }
 
 /*
@@ -22,11 +21,12 @@ should trigger all the (configured) plugins.
 You can use this to test configurations and/or new plugins
 */
 func FakeBluetooth() {
-	fakeBluetoothLogger().Infoln("Sending fake data from 'testdata' to the indicator parser... (waiting 5 seconds)")
+	fakeBluetoothLogger().Info("Sending fake data from 'testdata' to the indicator parser... (waiting 5 seconds)")
 
 	f, err := os.Open("testdata")
 	if err != nil {
-		fakeBluetoothLogger().Fatalf("error opening file: %s", err)
+		fakeBluetoothLogger().Error("error opening file", "err", err)
+		os.Exit(1)
 	}
 
 	r := bufio.NewReader(f)
@@ -35,11 +35,12 @@ func FakeBluetooth() {
 	time.Sleep(5 * time.Second)
 
 	for e == nil {
-		fakeBluetoothLogger().Infoln("Sending data: ", s)
+		fakeBluetoothLogger().Info("Sending data", "data", s)
 
 		h, err := hex.DecodeString(s)
 		if err != nil {
-			fakeBluetoothLogger().Fatalf("error decoding line: %v", err)
+			fakeBluetoothLogger().Error("error decoding line", "err", err)
+			os.Exit(1)
 		}
 
 		go decodeData(h)
@@ -51,7 +52,7 @@ func FakeBluetooth() {
 
 	time.Sleep(1 * time.Second)
 
-	fakeBluetoothLogger().Infoln("Finished sending fake data from 'testdata' to the indicator parser. Waiting in an infinite loop now.")
+	fakeBluetoothLogger().Info("Finished sending fake data from 'testdata' to the indicator parser. Waiting in an infinite loop now.")
 
 	go debounce()
 

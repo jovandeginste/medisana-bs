@@ -1,7 +1,8 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	"log/slog"
+	"os"
 
 	"github.com/jovandeginste/medisana-bs/plugins"
 	"github.com/jovandeginste/medisana-bs/structs"
@@ -12,14 +13,15 @@ var (
 	config     structs.Config
 )
 
-func mainLogger() log.FieldLogger {
-	return log.WithField("component", "main")
+func mainLogger() *slog.Logger {
+	return slog.With("component", "main")
 }
 
 func main() {
-	log.SetLevel(log.DebugLevel)
+	handler := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug})
+	slog.SetDefault(slog.New(handler))
 
-	mainLogger().Infoln("Initializing Bluetooth Scale monitor")
+	mainLogger().Info("Initializing Bluetooth Scale monitor")
 
 	config = ReadConfig("config.toml")
 
@@ -29,7 +31,7 @@ func main() {
 
 	StartMetricParser()
 
-	mainLogger().Infoln("Starting Bluetooth Scale monitor")
+	mainLogger().Info("Starting Bluetooth Scale monitor")
 
 	runScanner()
 }

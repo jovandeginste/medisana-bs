@@ -1,12 +1,11 @@
 package plugins
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/gocarina/gocsv"
 	"github.com/jovandeginste/medisana-bs/structs"
@@ -21,8 +20,8 @@ func (plugin CSV) Name() string {
 	return "CSV"
 }
 
-func (plugin CSV) Logger() log.FieldLogger {
-	return log.WithField("plugin", plugin.Name())
+func (plugin CSV) Logger() *slog.Logger {
+	return slog.With("plugin", plugin.Name())
 }
 
 // Initialize the Csv plugin
@@ -30,15 +29,15 @@ func (plugin CSV) Initialize(c structs.Config) structs.Plugin {
 	newc := c.Plugins["csv"]
 	plugin.Dir = newc.Dir
 
-	plugin.Logger().Debugln("I am the CSV plugin")
-	plugin.Logger().Debugf("  - Dir: %s", plugin.Dir)
+	plugin.Logger().Debug("I am the CSV plugin")
+	plugin.Logger().Debug("Config", "dir", plugin.Dir)
 
 	return plugin
 }
 
 // ParseData will parse new data for a given person
 func (plugin CSV) ParseData(person *structs.PersonMetrics) bool {
-	plugin.Logger().Infoln("The csv plugin is parsing new data")
+	plugin.Logger().Info("The csv plugin is parsing new data")
 
 	personID := person.Person
 	metrics := make(structs.BodyMetrics, len(person.BodyMetrics))
@@ -52,20 +51,23 @@ func (plugin CSV) ParseData(person *structs.PersonMetrics) bool {
 	sort.Sort(metrics)
 
 	csvFile := plugin.Dir + "/" + strconv.Itoa(personID) + ".csv"
-	plugin.Logger().Infof("Writing to file '%s'.", csvFile)
+	plugin.Logger().Info("Writing to file", "path", csvFile)
 
 	if err := createCsvDir(csvFile); err != nil {
-		plugin.Logger().Fatalf("Could not create CSV dir: %s", err)
+		plugin.Logger().Error("Could not create CSV dir", "err", err)
+		os.Exit(1)
 	}
 
 	f, err := os.Create(csvFile)
 	if err != nil {
-		plugin.Logger().Errorf("%#v", err)
+		plugin.Logger().Error("Failed to create CSV file", "err", err, "path", csvFile)
+		return false
 	}
 	defer f.Close()
 
 	if err := gocsv.MarshalWithoutHeaders(&metrics, f); err != nil {
-		plugin.Logger().Errorf("%#v", err)
+		plugin.Logger().Error("Failed to write CSV", "err", err, "path", csvFile)
+		return false
 	}
 
 	return true

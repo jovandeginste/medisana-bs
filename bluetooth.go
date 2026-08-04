@@ -4,10 +4,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"log/slog"
+	"os"
 	"strings"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/go-ble/ble"
 	"github.com/go-ble/ble/examples/lib/dev"
@@ -30,18 +30,19 @@ func showError(err error) {
 		return
 	}
 
-	bluetoothLogger().Errorf("error: %s", err)
+	bluetoothLogger().Error("error", "err", err)
 }
 
-func bluetoothLogger() log.FieldLogger {
-	return log.WithField("component", "bluetooth")
+func bluetoothLogger() *slog.Logger {
+	return slog.With("component", "bluetooth")
 }
 
 // StartBluetooth runs the bluetooth cycle forever, scanning for some time and processing results
 func StartBluetooth() {
 	d, err := dev.NewDevice(config.Device)
 	if err != nil {
-		bluetoothLogger().Fatalf("can't use device: %s", err)
+		bluetoothLogger().Error("can't use device", "err", err)
+		os.Exit(1)
 	}
 
 	ble.SetDefaultDevice(d)
@@ -53,7 +54,8 @@ func StartBluetooth() {
 	for {
 		if err := scan(filter); err != nil {
 			if !errors.Is(err, context.DeadlineExceeded) {
-				bluetoothLogger().Fatalf("%s", err)
+				bluetoothLogger().Error("scan failed", "err", err)
+				os.Exit(1)
 			}
 		}
 
@@ -62,14 +64,14 @@ func StartBluetooth() {
 }
 
 func scan(filter ble.AdvFilter) error {
-	bluetoothLogger().Infoln("starting scan...")
+	bluetoothLogger().Info("starting scan...")
 
 	ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), config.ScanDuration.AsTimeDuration()))
 
 	// Calculate the new timestamp by adding n seconds
 	newTimestamp := time.Now().Add(config.ScanDuration.AsTimeDuration())
 
-	bluetoothLogger().Infof("connecting... I should be back by %s", newTimestamp)
+	bluetoothLogger().Info("connecting...", "expected_return", newTimestamp)
 
 	ch := make(chan bool, 1)
 	go checkBluetoothHangs(ch)
@@ -90,26 +92,26 @@ func scan(filter ble.AdvFilter) error {
 	go func(cln ble.Client) {
 		select {
 		case <-cln.Disconnected():
-			bluetoothLogger().Infof("[ %s ] is disconnected ", cln.Addr())
+			bluetoothLogger().Info("client disconnected", "addr", cln.Addr())
 		case <-time.After(config.Sub.AsTimeDuration()):
-			bluetoothLogger().Infof("[ %s ] timed out", cln.Addr())
+			bluetoothLogger().Info("client timed out", "addr", cln.Addr())
 		}
 	}(cln)
 
-	bluetoothLogger().Infof("[ %s ] is connected ...", cln.Addr())
-	bluetoothLogger().Infoln("discovering profile...")
+	bluetoothLogger().Info("client connected", "addr", cln.Addr())
+	bluetoothLogger().Info("discovering profile...")
 
 	p, err := cln.DiscoverProfile(true)
 	if err != nil {
 		return fmt.Errorf("can't discover profile: %w", err)
 	}
 
-	bluetoothLogger().Infof("address: '%s'; name: '%s'", cln.Addr(), cln.Name())
+	bluetoothLogger().Info("device info", "addr", cln.Addr(), "name", cln.Name())
 
 	// Start the exploration.
 	showError(explore(cln, p))
 
-	bluetoothLogger().Infof("discovery done, waiting %.0f seconds before disconnecting.", config.Sub.AsTimeDuration().Seconds())
+	bluetoothLogger().Info("discovery done, waiting before disconnecting", "seconds", config.Sub.AsTimeDuration().Seconds())
 	time.Sleep(config.Sub.AsTimeDuration())
 
 	go debounce()
@@ -123,21 +125,22 @@ func checkBluetoothHangs(ch chan bool) {
 
 	select {
 	case <-ch:
-		bluetoothLogger().Infof("scan finished in time")
+		bluetoothLogger().Info("scan finished in time")
 		return
 	case <-time.After(config.ScanDuration.AsTimeDuration()):
-		bluetoothLogger().Fatal("scan did not finish in time - hardware hang?")
+		bluetoothLogger().Error("scan did not finish in time - hardware hang?")
+		os.Exit(1)
 	}
 }
 
 func disconnect(cln ble.Client) {
 	// Disconnect the connection. (On OS X, this might take a while.)
-	bluetoothLogger().Infof("disconnecting [ %s ]...", cln.Addr())
+	bluetoothLogger().Info("disconnecting client", "addr", cln.Addr())
 
 	showError(cln.ClearSubscriptions())
 	showError(cln.CancelConnection())
 
-	bluetoothLogger().Infof("disconnected!")
+	bluetoothLogger().Info("disconnected")
 }
 
 func explore(cln ble.Client, p *ble.Profile) error {
@@ -159,7 +162,7 @@ func explore(cln ble.Client, p *ble.Profile) error {
 	for _, s := range p.Services {
 		for _, c := range s.Characteristics {
 			if c.UUID.String() == CharCommandShort {
-				bluetoothLogger().Infof("sending the time... ")
+				bluetoothLogger().Info("sending the time...")
 
 				binarytime := generateTime()
 
@@ -167,7 +170,7 @@ func explore(cln ble.Client, p *ble.Profile) error {
 					return fmt.Errorf("error while writing command: %w", err)
 				}
 
-				bluetoothLogger().Infof("done.")
+				bluetoothLogger().Info("done")
 			}
 		}
 	}
