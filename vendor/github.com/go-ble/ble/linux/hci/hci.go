@@ -169,6 +169,11 @@ func (h *HCI) Close() error {
 	return h.close(nil)
 }
 
+// Done ...
+func (h *HCI) Done() <-chan bool {
+	return h.done
+}
+
 // Error ...
 func (h *HCI) Error() error {
 	return h.err

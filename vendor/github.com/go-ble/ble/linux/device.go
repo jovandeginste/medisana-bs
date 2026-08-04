@@ -109,7 +109,11 @@ func (d *Device) Advertise(ctx context.Context, adv ble.Advertisement) error {
 	if err := d.HCI.AdvertiseAdv(adv); err != nil {
 		return err
 	}
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case <-d.HCI.Done():
+		return d.HCI.Error()
+	}
 	d.HCI.StopAdvertising()
 	return ctx.Err()
 
@@ -122,7 +126,11 @@ func (d *Device) AdvertiseNameAndServices(ctx context.Context, name string, uuid
 	if err := d.HCI.AdvertiseNameAndServices(name, uuids...); err != nil {
 		return err
 	}
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case <-d.HCI.Done():
+		return d.HCI.Error()
+	}
 	d.HCI.StopAdvertising()
 	return ctx.Err()
 }
@@ -132,7 +140,11 @@ func (d *Device) AdvertiseMfgData(ctx context.Context, id uint16, b []byte) erro
 	if err := d.HCI.AdvertiseMfgData(id, b); err != nil {
 		return err
 	}
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case <-d.HCI.Done():
+		return d.HCI.Error()
+	}
 	d.HCI.StopAdvertising()
 	return ctx.Err()
 }
@@ -142,7 +154,11 @@ func (d *Device) AdvertiseServiceData16(ctx context.Context, id uint16, b []byte
 	if err := d.HCI.AdvertiseServiceData16(id, b); err != nil {
 		return err
 	}
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case <-d.HCI.Done():
+		return d.HCI.Error()
+	}
 	d.HCI.StopAdvertising()
 	return ctx.Err()
 }
@@ -152,7 +168,11 @@ func (d *Device) AdvertiseIBeaconData(ctx context.Context, b []byte) error {
 	if err := d.HCI.AdvertiseIBeaconData(b); err != nil {
 		return err
 	}
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case <-d.HCI.Done():
+		return d.HCI.Error()
+	}
 	d.HCI.StopAdvertising()
 	return ctx.Err()
 }
@@ -162,7 +182,11 @@ func (d *Device) AdvertiseIBeacon(ctx context.Context, u ble.UUID, major, minor 
 	if err := d.HCI.AdvertiseIBeacon(u, major, minor, pwr); err != nil {
 		return err
 	}
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case <-d.HCI.Done():
+		return d.HCI.Error()
+	}
 	d.HCI.StopAdvertising()
 	return ctx.Err()
 }
@@ -175,7 +199,11 @@ func (d *Device) Scan(ctx context.Context, allowDup bool, h ble.AdvHandler) erro
 	if err := d.HCI.Scan(allowDup); err != nil {
 		return err
 	}
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case <-d.HCI.Done():
+		return d.HCI.Error()
+	}
 	d.HCI.StopScanning()
 	return ctx.Err()
 }

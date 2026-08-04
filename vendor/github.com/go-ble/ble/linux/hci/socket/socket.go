@@ -74,6 +74,7 @@ func NewSocket(id int) (*Socket, error) {
 
 	req := devListRequest{devNum: hciMaxDevices}
 	if err = ioctl(uintptr(fd), hciGetDeviceList, uintptr(unsafe.Pointer(&req))); err != nil {
+		unix.Close(fd)
 		return nil, errors.Wrap(err, "can't get device list")
 	}
 	var msg string
@@ -84,6 +85,7 @@ func NewSocket(id int) (*Socket, error) {
 		}
 		msg = msg + fmt.Sprintf("(hci%d: %s)", id, err)
 	}
+	unix.Close(fd)
 	return nil, errors.Errorf("no devices available: %s", msg)
 }
 
